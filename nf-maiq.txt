@@ -1,0 +1,620 @@
+****************************************************************
+* NF-MAIQ   v2.00.01/26/91.CC.OPA   Recallit Printing Routines *
+****************************************************************
+*                                                              *
+* Source Published: 04/16/2024 garyopa.com / ti99.atariage.com *
+*                                                              *
+* Copyrighted 1991 by Gary Bowser and Cecil Chin from O.P.A.   *
+*                                                              *
+* Credit Must Be Included When Using Source from RECALLIT 2001 *
+*                                                              *
+****************************************************************
+ 
+**********************************
+* Print two line heading         *
+**********************************
+CPHEAD MOV  R11,@CPHEAE+2     Save return address
+       LI   R0,PABBUF         Set PAB buffer pointer
+       CLR  R7                Clear R7; will length of $ for DSR
+       BL   @PUTCDE           Send condensed code to printer
+       DATA CMPON
+       LI   R1,PRTICM         First line of heading
+       LI   R2,160            Length of first line
+       BLWP @VMBW             Write string to VDP buffer
+       A    R2,R7             Update $ counter
+       BL   @STRLN7           Send string to printer
+       LI   R0,PABBUF         Set PAB buffer pointer
+       CLR  R7                Clear R7; will length of $ for DSR
+       LI   R1,PRTICN         Secound line of heading
+       LI   R2,160            Length of sceound line
+       BLWP @VMBW             Write string to VDP buffer
+       A    R2,R7             Update $ counter
+       BL   @STRLN7           Send string to printer
+CPHEAE B    @>0000
+***********************************
+* Print search and print by code  *
+* in compressed mode              *
+***********************************
+CMPSCH MOV  *R11+,@CMPSCK+2   Address of where to go for record
+       MOV  *R11,@CMPSCI+2    Get end of sort table return adr. adddress
+       LI   R1,2
+       LI   R0,CMPSCL         Put end of sort table return adr. in R0
+CMPSCI MOV  R0,@>0000(R1)     Move end of sort table return to right routine
+       BL   @PRTSUB           Get heading input
+       DATA 48,96
+       BL   @CPHEAD           Send heading to printer
+       BL   @SETCNT           Set counters for records and pages
+CMPSCJ CLR  @EXR6             Count records found
+       LI   R4,TWOCLM         Set pointer for two column buffer
+       MOV  R15,R15           Check if 1st page
+       JEQ  CMP30
+       LI   R5,36             Not 1st page, get 36 records
+       JMP  CMPSCM
+CMP30  LI   R5,30             1st page, get 30 records
+CMPSCM MOV  R5,@EXR5
+CMPSCK BL   @>0000            Go to routine to get record
+       MOV  @NXTREC,*R4+      Put record # in buffer
+       INC  @EXR6             Add one to counter
+       C    @EXR6,@EXR5       Check if at end
+       JNE  CMPSCK            No go back for another
+       LI   R3,TWOCLM         Reached end so reset pointer
+       MOV  R3,R13            Copy pointer
+       A    @EXR5,R13         Calculate address for 2nd column
+       BL   @PAGEV            Go to routine to print
+       BL   @PAGEW            Print end and beginning of page
+       JMP  CMPSCJ            Do another page
+CMPSCL MOV  @EXR6,R14         Set registers for end of table calculations
+       MOV  R14,R6            Restore R6 for print routine
+       LI   R3,TWOCLM         Reset buffer pointer
+       MOV  R3,R13            Copy pointer
+       B    @PAGLST           Go to routine to do last page
+EXR5   DATA >0000
+EXR6   DATA >0000
+****************************************
+* Set up and print less than full page *
+****************************************
+CMPRSD BL   @PRTSUB           Get titles & send to printer
+       DATA 48,96
+       BL   @CPHEAD
+       BL   @SETCNT
+       LI   R8,SORTAB         Set sort table pointer
+       MOV  @NUMREC,R14       Move # of rec to R14
+       CI   R14,30            Check if one page or less
+       JH   PAGES             If more goto routine to do 1 page +
+       MOV  R14,R5            Move # of rec for this page to R5
+       BL   @GETCLM           Set up columns
+       JMP  PAGLST
+PAGES  MOV  R15,R15
+       JNE  PAGET
+       LI   R5,30
+       JMP  PAGEU
+PAGET  LI   R5,36
+PAGEU  BL   @GETCLM
+       A    R5,R13
+       BL   @PAGEV
+       BL   @PAGEW
+       JMP  PAGES
+ 
+PAGLST INC  R14               * Calculate start of second
+       SRL  R14,1             * column
+       SLA  R14,1             *
+       A    R14,R13           *
+       CLR  R12               Clear counter
+PAGES2 LI   R0,PABBUF         Set VDP buffer address pointer
+       CLR  R7                counter for length of DSR string
+       MOV  *R3+,@NXTREC      Get address record for col. #1
+       BLWP @GETPAG
+       MOV  @NXTADR,R4
+       INC  R12               Count # of records
+       C    R12,R6            Ckeck if at end
+       JEQ  LSTPAG            If at end then end page
+       BL   @PU1REC           Send half of rec for col #1 to VDP
+       LI   R2,2              * Put two spaces
+       BL   @PUTSPC           *
+       MOV  R4,@COL1          Save address
+       MOV  *R13+,@NXTREC     Get Address of record for 2nd col
+       BLWP @GETPAG
+       MOV  @NXTADR,R4
+       BL   @PU1REC           Send half of rec for col #2 to VDP
+       MOV  R4,@COL2          Save address
+       BL   @STRLN7           Go to DSR
+       LI   R0,PABBUF         Reset VDP buffer pointer
+       CLR  R7                Reset counter
+       MOV  @-2(R3),@NXTREC
+       BLWP @GETPAG
+       MOV  @COL1,R4          Restore First address
+       CLR  R2
+       BL   @PU2REC           Send 2nd half of rec for col #1 to VDP
+       LI   R2,81             * Put two spaces
+       S    R7,R2             *
+       MOV  @-2(R13),@NXTREC
+       BLWP @GETPAG
+       MOV  @COL2,R4          Restore 2nd address
+       BL   @PU2REC           Send 2nd half of rec for col #2 to VDP
+       MOVB @LFEED,R1
+       BLWP @VSBW
+       INC  R7
+       BL   @STRLN7           Go to DSR
+       INCT R9                Count total # of record printed
+       AI   R10,3
+       INC  R12               Inc end checker
+       C    R12,R6            Check if at end
+       JEQ  PAGEND
+       JMP  PAGES2
+ 
+LSTPAG BL   @PU1REC           Send half of rec for col #1 to VDP
+       BL   @STRLN7           Go to DSR
+       LI   R0,PABBUF         Reset VDP buffer pointer
+       CLR  R7                Reset counter
+       CLR  R2
+       BL   @PU2REC           Send 2nd half of rec for col #1 to VDP
+       MOVB @LFEED,R1
+       BLWP @VSBW
+       INC  R7
+       BL   @STRLN7           Go to DSR
+       INC  R9                Count total # of record printed
+       AI   R10,3
+PAGEND BL   @CHDCDE           * Shut off condensed mode
+       DATA CMPOFF            *
+       B    @PRTPTW           End of last page NF/MAIP
+************************************
+* Print end and beginning of pages *
+************************************
+PAGEW  MOV  R11,@PAGEY+2
+       MOV  *R8,R0
+       JLT  PAGEND
+       BL   @CHDCDE
+       DATA CMPOFF
+       BL   @PRTDL1
+       BL   @CHDCDE
+       DATA CMPON
+       BL   @CPHEAD
+       LI   R10,2
+PAGEY  B    @>0000
+**********************************
+* Setup and print full page      *
+**********************************
+PAGEV  MOV  R11,@PAGERT+2
+PAGEX  LI   R0,PABBUF
+       CLR  R7
+       MOV  *R3+,@NXTREC
+       BLWP @GETPAG
+       MOV  @NXTADR,R4
+       BL   @PU1REC
+       LI   R2,2
+       BL   @PUTSPC
+       MOV  R4,@COL1
+       MOV  *R13+,@NXTREC
+       BLWP @GETPAG
+       MOV  @NXTADR,R4
+       BL   @PU1REC
+       MOV  R4,@COL2
+       BL   @STRLN7
+       MOV  @-2(R3),@NXTREC
+       BLWP @GETPAG
+       MOV  @COL1,R4
+       LI   R0,PABBUF
+       CLR  R7
+       CLR  R2
+       BL   @PU2REC
+       MOV  @-2(R13),@NXTREC
+       BLWP @GETPAG
+       MOV  @COL2,R4
+       LI   R2,81
+       S    R7,R2
+       BL   @PU2REC
+       MOVB @LFEED,R1
+       BLWP @VSBW
+       INC  R7
+       BL   @STRLN7
+       INCT R9
+       AI   R10,3
+       CI   R10,56
+       JEQ  PAGERT
+       BL   @PRTDEL
+       JMP  PAGEX
+PAGERT B    @>0000
+ 
+CHDCDE MOV  *R11+,@CHDCDF
+       MOV  R11,@CHDCDG+2
+       LI   R0,PABBUF
+       CLR  R7
+       BL   @PUTCDE
+CHDCDF DATA >0000
+       BL   @STRLN7
+CHDCDG B    @>0000
+*************************************
+* Send first line of rec to printer *
+*************************************
+PU1REC MOV  R11,@PU1RET+2
+       MOV  R4,@PU1RED
+       BLWP @NOSPCE
+PU1RED DATA >0000,18
+       MOV  @SAVLEN,R2
+       JEQ  PU1REE
+       MOV  R4,R1        Last Name
+       BLWP @VMBW
+       A    R2,R0
+       A    R2,R7
+       LI   R1,COMMA
+       LI   R2,2
+       INCT @SAVLEN
+       BLWP @VMBW
+       A    R2,R0
+       A    R2,R7
+PU1REE AI   R4,18
+       MOV  R4,R1        First Name
+       LI   R2,12
+       BLWP @VMBW
+       A    R2,R0
+       A    R2,R4
+       A    R2,R7
+       LI   R2,21
+       S    @SAVLEN,R2
+       BL   @PUTSPC
+       AI   R4,6
+       MOV  R4,R1        Address
+       LI   R2,28
+       BLWP @VMBW
+       A    R2,R0
+       A    R2,R7
+       LI   R2,1
+       BL   @PUTSPC
+       AI   R4,55        28+14+9+4=55
+       MOV  R4,R1        Code
+       LI   R2,4
+       BLWP @VMBW
+       A    R2,R0
+       A    R2,R7
+       LI   R2,1
+       BL   @PUTSPC
+       BLWP @TELFON      Decompress phone#
+       LI   R1,SCRPT     Phone#
+       LI   R2,12
+       BLWP @VMBW
+       A    R2,R0
+       A    R2,R7
+PU1RET B    @>0000
+***************************************
+* Send second line of rec to printer  *
+***************************************
+PU2REC MOV  R11,@PU2RET+2
+       MOV  R2,R2
+       JEQ  PU2REH
+       BL   @PUTSPC
+PU2REH AI   R4,4
+       MOV  @NOCOM,R5
+       JNE  PU2RED
+       MOV  R4,R1        Comments
+       LI   R2,28
+       BLWP @VMBW
+       A    R2,R0
+       A    R2,R7
+       LI   R2,5
+       JMP  PU2REE
+PU2RED LI   R2,33
+PU2REE BL   @PUTSPC
+       AI   R4,-31       4+9+4+14=31
+       MOV  R4,@PU2REF
+       BLWP @NOSPCE
+PU2REF DATA >0000,14
+       MOV  @SAVLEN,R2
+       JEQ  PU2REG
+       MOV  R4,R1        City
+       BLWP @VMBW
+       A    R2,R0
+       A    R2,R7
+       MOVB @SPACE,R1
+       BLWP @VSBW
+       INC  R0
+       INC  R7
+PU2REG AI   R4,14
+       MOV  R4,R1        Province
+       LI   R2,4
+       BLWP @VMBW
+       A    R2,R0
+       A    R2,R7
+       A    R2,R4
+       MOVB @SPACE,R1
+       BLWP @VSBW
+       INC  R0
+       INC  R7
+       MOV  R4,R1        Postal code
+       LI   R2,9
+       BLWP @VMBW
+       A    R2,R0
+       A    R2,R7
+PU2RET B    @>0000
+******************************
+* Put records for two column *
+* printing in TWOCLM buffer  *
+******************************
+GETCLM CLR  R6
+       LI   R3,TWOCLM
+GETCLO MOV  *R8+,@NXTREC
+       JLT  GETCLQ
+       BLWP @GETPAG
+       MOV  @NOACT,R2
+       JEQ  GETCLP
+       MOV  @NXTADR,R1
+       C    @91(R1),@HEX20
+       JEQ  GETCLO
+GETCLP MOV  @NXTREC,*R3+
+       INC  R6
+       C    R6,R5
+       JL   GETCLO
+       LI   R3,TWOCLM
+       MOV  R3,R13
+       RT
+GETCLQ MOV  R6,R14
+       LI   R3,TWOCLM
+       MOV  R3,R13
+       B    @PAGLST
+**********************************
+* Routine to catalog a disk      *
+**********************************
+DSKCAT MOV  R11,@DSKRET+2
+REDOCT BLWP @CLEAR
+       DATA 0,759
+       BLWP @WRTSCR
+       DATA CATIN
+       SETO R14               Set Proceed flag
+       SETO @NOPRO            set Peoceed flag yes two flags
+       BL   @UPPER            Set keyboard to UPPER CASE
+       BL   @INPUT            Goto input routine
+       DATA CATINP,5
+       BL   @UPLOW            Set keyboard to UPPER/LOWER case
+       BL   @SVDATA           Get input & length from screen
+       DATA CATINP,CAT000+4   Length in R2
+DAKCAW MOV  R2,@CATPAB+8      Move length to PAB
+       CLR  R0                *
+       MOVB R0,@CATPAC(R2)    Put 0 at end of text for WRTSCR
+       MOVB R0,@CATPAB        Put open code in PAB
+       CB   @CATPAC,@TYPE1
+       JEQ  DAKCAU
+       LI   R1,CAT013
+       MOV  R1,@CAT000+16
+       JMP  DAKCAV
+DAKCAU LI   R1,CAT005
+       MOV  R1,@CAT000+16
+DAKCAV LI   R0,PABADR         Put VDP PAB address in r0
+       LI   R1,CATPAB         Put CPU PAB address in r1
+       LI   R2,25             Put length of PAB in r2
+       BLWP @VMBW             Write PAB to VDP
+       BL   @DSREXE           Open file
+       LI   R1,>0200          Put read code in MSB of r1
+       BLWP @VSBW             Write it to PAB in VDP
+       BL   @DSREXE           Get 1st record; Disk name etc.
+       LI   R0,CATBUF         Load R1 with VDP buffer adderss
+       BLWP @VSBR             Get length of 1st string
+       MOVB R1,R2             Move it to R2
+       SRL  R2,8              Shift it to LSB
+       INC  R0                Move pointer to start of string
+       LI   R1,CAT008         Load R1 with CPU buffer
+       BLWP @VMBR             Move string from VDP to CPU
+       CLR  R3
+       MOVB R3,@CAT008(R2)    Put 0 at end of text for WRTSCR
+       BL   @CONVFI
+       DATA TYPE
+       BL   @CONVFI
+       DATA SIZTOT
+       BL   @CONVFI
+       DATA LENFRE
+       S    @LENFRE,@SIZTOT   Total-Free=used
+       MOV  @SIZTOT,R6        Move no. sectors used to R6
+       BLWP @NXTNUM           Convert HEX to ASCII
+       DATA CAT005+5,3
+       MOV  @LENFRE,R6        Move no. sectors free to R6
+       BLWP @NXTNUM           Convert HEX to ASCII
+       DATA CAT006+5,3
+       BLWP @CLEAR            Clear part of screen
+       DATA 352,64
+       BLWP @WRTSCR           Put message on screen
+       DATA BLDDIR
+       BLWP @CLEAR
+       DATA 738,20
+       LI   R3,CATEND         * Put return adr for DSR Error #5
+       MOV  R3,@DSRER5+2      * in DSR routine
+       CLR  R4                R4 will count # of rec to cal # of pages
+       LI   R3,CATBUF         Set VDP catalog buffer pointer
+       LI   R2,2              Length of buffer address
+INCBUF MOV  R3,@TYPE
+       LI   R1,TYPE
+       LI   R0,PABADR+2       Where to write address in PAB
+       BLWP @VMBW             Write buffer address to PAB
+       BL   @DSREXE           Get record
+       MOV  R3,R0             * Read length Byte to check
+       BLWP @VSBR             * for end of file
+       MOVB R1,R1             * Check if zero
+       JEQ  CATENE            * If yes then end of file
+       INC  R4                Count records read
+       AI   R3,38             Move pointer for next record
+       JMP  INCBUF
+CATEND MOV  R3,R0             * If returned from DSR with
+       CLR  R1                * error #5 then mark end
+       BLWP @VSBW             * of buffer with a zero
+       JMP  CATENF
+CATENE LI   R1,>0100          * Close file
+       LI   R0,PABADR         *
+       BLWP @VSBW             *
+       BL   @DSREXE
+CATENF MOV  R4,R6             Calculate total no. of pages
+       AI   R6,15             16 line per page
+       SRL  R6,4              Divide by 16
+       BLWP @NXTNUM           Convert HEX to ASCII
+       DATA CAT004+12,1
+       LI   R7,1              R7 count pages start with 1st page
+       MOV  R7,R6
+       BLWP @NXTNUM           Convert HEX to ASCII
+       DATA CAT004+6,1
+       BLWP @CLEAR
+       DATA 0,759
+       BLWP @WRTSCR
+       DATA CAT000
+       LI   R3,CATBUF         Set VDP buffer pointer
+       CLR  @SCHFLG           Clear flag to cursor at top
+WRTCAX BLWP @CLEAR
+       DATA 160,512
+       BLWP @WRTSCR
+       DATA CATPAG
+       CLR  R5                Count no. of lines per page
+       LI   R4,131            Screen position will be INC by 32
+WRTCAT BL   @CATCLR           Clear buffer
+       DATA FNAME,10
+       MOV  R3,R0             Move buffer address to R0
+       BLWP @VSBR             Get 1st BYTE of rec
+       SRL  R1,8              Move LSB
+       MOV  R1,R2             Move length to R2
+       JEQ  LSTREC            Check if at end of buffer
+       BL   @MAKLNE
+       BLWP @WRTSCR
+       DATA FNAMF
+       INC  R5
+       CI   R5,16             Check if at end of page
+       JNE  WRTCAT
+LSTREC MOV  @SCHFLG,@SCHFLG   Check if flag is zero
+       JEQ  LSTRED            If zero put cursor at top
+       LI   R0,642            If -1 put cursor at bottom
+       JMP  LSTREE
+LSTRED LI   R0,162            Load R1 with screen address
+LSTREE LI   R1,>1E00          Put cursor CHAR in R1
+       BLWP @VSBW             Put cursor on screen (won't blink)
+       MOV  R0,R13
+       CLR  @DELAY
+WRTCAU BLWP @FINDKE   ***********
+       DATA CATSEL
+MUP    CI   R13,162
+       JEQ  MUQ
+       MOV  R13,R0
+       LI   R1,>2000
+       BLWP @VSBW
+       AI   R0,-32
+       LI   R1,>1E00
+       BLWP @VSBW
+       MOV  R0,R13
+       B    @WRTCAU
+MUQ    CI   R7,1
+       JEQ  MUR
+       SETO @SCHFLG           Let flag = -1
+       JMP  PBACL
+MUR    CLR  @SCHFLG
+       B    @WRTCAU
+ 
+MDOWN  C    @CAT004+6,@CAT004+12
+       JEQ  MDOWO
+       CI   R13,642
+       JEQ  MDOWQ
+MDOWP  MOV  R13,R0
+       LI   R1,>2000
+       BLWP @VSBW
+       AI   R0,32
+       LI   R1,>1E00
+       BLWP @VSBW
+       MOV  R0,R13
+CAUWRT B    @WRTCAU
+MDOWO  MOV  R5,R6             Copy R5 to R6
+       DEC  R6                Deduct 1
+       SLA  R6,5              Multiply by 32
+       AI   R6,162            To get last screen address
+       C    R13,R6
+       JEQ  CAUWRT
+       JMP  MDOWP
+MDOWQ  CLR  @SCHFLG
+       JMP  PFORWE
+PFORWD CLR  @SCHFLG
+       C    @CAT004+6,@CAT004+12
+       JEQ  CAUWRT
+PFORWE INC  R7
+       MOV  R7,R6
+       BLWP @NXTNUM
+       DATA CAT004+6,1
+       B    @WRTCAX
+ 
+PBACK  CI   R7,1
+       JEQ  CAUWRT
+PBACL  DEC  R7
+       MOV  R7,R6
+       BLWP @NXTNUM
+       DATA CAT004+6,1
+       MOV  R5,R9
+       MPY  @DEC38,R9
+       AI   R10,608
+       S    R10,R3
+       B    @WRTCAX
+ 
+SELNME CLR  R9
+       MOV  R13,R0
+       AI   R0,18
+       BLWP @VSBR
+       CB   R1,@TYPE3
+       JNE  SELNMI
+       SETO R9
+       LI   R10,CATPAC
+       JMP  SELNMF
+SELNMI LI   R10,FILBUF
+SELNMF MOV  R10,@DRVGET
+       LI   R1,2
+       MOV  R1,@CAT1
+       LI   R1,15
+       MOV  R1,@CAT1+2
+       BL   @SVDATA
+       DATA CAT1,DRVGET
+       MOV  R2,@SAVLEN
+       A    R2,R10
+       MOV  R10,@DRVGET
+       LI   R1,10
+       MOV  R1,@CAT1+2
+       INC  R13
+       MOV  R13,@CAT1
+       BL   @SVDATA
+       DATA CAT1,DRVGET
+       A    @SAVLEN,R2
+       ABS  R9
+       JEQ  SELNMH
+       MOVB @PERIOD,@CATPAC(R2)
+       INC  R2
+       BLWP @CLEAR
+       DATA 0,759
+       BLWP @WRTSCR
+       DATA RECAT
+       B    @DAKCAW
+SELNMH CLR  R1
+       MOVB R1,@FILBUF(R2)
+       LI   R1,FILBUF
+       MOV  R1,@DRVGET
+DSKREU LI   R0,>0000
+       MOV  R0,@DSRER5+2
+DSKRET B    @>0000
+**********************************
+MAKLNE MOV  R11,@MAKLNG+2     Save return adderss
+       INC  R0                Move R0 to start of string
+       LI   R1,FNAME          Set buffr pointer
+       BLWP @VMBR             Read string
+       BL   @CONVFI
+       DATA TYPE
+       MOV  @TYPE,R6          Move no to r6
+       JLT  PROTCT            Check if it's a - no.
+       MOVB @YNCHK+1,@PROT
+       JMP  PROTCU
+PROTCT MOVB @YNCHK,@PROT
+       ABS  R6
+PROTCU SLA  R6,1
+       MOV  @FILTYP(R6),R9
+       LI   R10,TYPDIS
+       MOVB *R9+,*R10+
+       MOVB *R9+,*R10+
+       MOVB *R9+,*R10+
+       BL   @CONVFI
+       DATA SIZTOT
+       MOV  @SIZTOT,R6
+       BLWP @NXTNUM
+       DATA SIZE,3
+       BL   @CONVFI
+       DATA LENFRE
+       MOV  @LENFRE,R6
+       BLWP @NXTNUM
+       DATA LENGTH,4
+       AI   R3,38
+       AI   R4,32
+       MOV  R4,@FNAMF+2       Put screen address in data line
+MAKLNG B    @>0000

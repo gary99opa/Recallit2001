@@ -1,0 +1,569 @@
+****************************************************************
+* NF-SUBS   v2.00.01/26/91.CC.OPA     MOST OF THE COMMON SUB'S *
+****************************************************************
+*                                                              *
+* Source Published: 04/16/2024 garyopa.com / ti99.atariage.com *
+*                                                              *
+* Copyrighted 1991 by Gary Bowser and Cecil Chin from O.P.A.   *
+*                                                              *
+* Credit Must Be Included When Using Source from RECALLIT 2001 *
+*                                                              *
+****************************************************************
+CLRWRT MOV  R11,@CLRWRU+2
+       BL   @CLRFLD      Clear display fields
+       DATA INPOS
+       BLWP @CLEAR
+       DATA 706,28
+       BL   @WRTDAT      Display record - telephone no.
+       DATA NXTADR,INPOS1
+       BLWP @DENUM       Decompress telephone number
+       DATA NXTADR,SCRPT,5
+       BL   @WRTDAT      Display telephone no.
+       DATA SCRPU,INPOS2
+CLRWRU B    @>0000
+ 
+INSAV  MOV  R11,@INSAW+2
+       BLWP @CLEAR
+       DATA 34,28
+       BLWP @CLEAR
+       DATA 752,6
+       BLWP @WRTSCR
+       DATA ED
+       MOV  @NXTREC,@INPREC
+       SETO R14
+       SETO @CDAD
+       SETO @NOPRO
+       CLR  @ADED
+       BL   @INPUT       Edit record
+       DATA INPOS,4
+       BL   @SAVDAT      Read record from the screen
+       DATA INPOS1,NXTADR
+       BLWP @COM$UM      Compress telephone no.
+       DATA NXTADR,SCRPT,10
+INSAW  B    @>0000
+ 
+ARYMSG MOV  R11,@ARYMSH+2
+       BLWP @CLEAR       Write Array empty
+       DATA 0,759
+       BLWP @WRTSCR
+       DATA ARYEMP
+       BL   @SCAN
+ARYMSH B    @>0000
+ 
+*************************
+*SAVE DATA TO ROS MEMORY*
+*************************
+SAVDAT MOV  *R11+,R3
+       MOV  *R11+,R1
+       MOV  *R1,R1
+SAVDAU MOV  *R3+,R0
+       JLT  SAVRT
+       MOV  *R3+,R2
+       BLWP @VMBR
+       A    R2,R1
+       JMP  SAVDAU
+SAVRT  RT
+ 
+SVDATA MOV  *R11+,R3        SCREEN ADDRESS AND MAX. LENGTH TABLE POINTER
+       MOV  *R11+,R4        ADDRESS OF CPU BUFFER ADDRESS
+       MOV  *R4,R4          GET CPU BUFFER ADDRESS
+       CLR  R1
+       CLR  R2              CLEAR LENGTH
+       MOV  *R3,R0          GET SCREEN ADDRESS
+SVDAT1 BLWP @VSBR           READ A BYTE FROM THE SCREEN
+       CI   R1,>2000        CHECK IF IT IS A SPACE
+       JEQ  SVDTRT          IF SO, THEN STOP READING
+       MOVB R1,*R4+         STORE READ BYTE INTO CPU BUFFER
+       INC  R0              POINT TO NEXT BYTE
+       INC  R2              ADD 1 TO LENGTH
+       JMP  SVDAT1          JUMP BACK FOR ANOTHER BYTE
+SVDTRT RT
+ 
+MOVREC DATA UTILWS,MOVRED
+MOVRED MOV  *R14+,R5     Get address where record is stored
+       MOV  *R14+,R6     Get address where record is going
+       MOV  *R5,R5       Address of copy
+       MOV  *R5+,*R6+    Moving 128 BYTES at Maximum speed
+       MOV  *R5+,*R6+    Moving 128 BYTES at Maximum speed
+       MOV  *R5+,*R6+    Moving 128 BYTES at Maximum speed
+       MOV  *R5+,*R6+    Moving 128 BYTES at Maximum speed
+       MOV  *R5+,*R6+    Moving 128 BYTES at Maximum speed
+       MOV  *R5+,*R6+    Moving 128 BYTES at Maximum speed
+       MOV  *R5+,*R6+    Moving 128 BYTES at Maximum speed
+       MOV  *R5+,*R6+    Moving 128 BYTES at Maximum speed
+       MOV  *R5+,*R6+    Moving 128 BYTES at Maximum speed
+       MOV  *R5+,*R6+    Moving 128 BYTES at Maximum speed
+       MOV  *R5+,*R6+    Moving 128 BYTES at Maximum speed
+       MOV  *R5+,*R6+    Moving 128 BYTES at Maximum speed
+       MOV  *R5+,*R6+    Moving 128 BYTES at Maximum speed
+       MOV  *R5+,*R6+    Moving 128 BYTES at Maximum speed
+       MOV  *R5+,*R6+    Moving 128 BYTES at Maximum speed
+       MOV  *R5+,*R6+    Moving 128 BYTES at Maximum speed
+       MOV  *R5+,*R6+    Moving 128 BYTES at Maximum speed
+       MOV  *R5+,*R6+    Moving 128 BYTES at Maximum speed
+       MOV  *R5+,*R6+    Moving 128 BYTES at Maximum speed
+       MOV  *R5+,*R6+    Moving 128 BYTES at Maximum speed
+       MOV  *R5+,*R6+    Moving 128 BYTES at Maximum speed
+       MOV  *R5+,*R6+    Moving 128 BYTES at Maximum speed
+       MOV  *R5+,*R6+    Moving 128 BYTES at Maximum speed
+       MOV  *R5+,*R6+    Moving 128 BYTES at Maximum speed
+       MOV  *R5+,*R6+    Moving 128 BYTES at Maximum speed
+       MOV  *R5+,*R6+    Moving 128 BYTES at Maximum speed
+       MOV  *R5+,*R6+    Moving 128 BYTES at Maximum speed
+       MOV  *R5+,*R6+    Moving 128 BYTES at Maximum speed
+       MOV  *R5+,*R6+    Moving 128 BYTES at Maximum speed
+       MOV  *R5+,*R6+    Moving 128 BYTES at Maximum speed
+       MOV  *R5+,*R6+    Moving 128 BYTES at Maximum speed
+       MOV  *R5+,*R6+    Moving 128 BYTES at Maximum speed
+       MOV  *R5+,*R6+    Moving 128 BYTES at Maximum speed
+       MOV  *R5+,*R6+    Moving 128 BYTES at Maximum speed
+       MOV  *R5+,*R6+    Moving 128 BYTES at Maximum speed
+       MOV  *R5+,*R6+    Moving 128 BYTES at Maximum speed
+       MOV  *R5+,*R6+    Moving 128 BYTES at Maximum speed
+       MOV  *R5+,*R6+    Moving 128 BYTES at Maximum speed
+       MOV  *R5+,*R6+    Moving 128 BYTES at Maximum speed
+       MOV  *R5+,*R6+    Moving 128 BYTES at Maximum speed
+       MOV  *R5+,*R6+    Moving 128 BYTES at Maximum speed
+       MOV  *R5+,*R6+    Moving 128 BYTES at Maximum speed
+       MOV  *R5+,*R6+    Moving 128 BYTES at Maximum speed
+       MOV  *R5+,*R6+    Moving 128 BYTES at Maximum speed
+       MOV  *R5+,*R6+    Moving 128 BYTES at Maximum speed
+       MOV  *R5+,*R6+    Moving 128 BYTES at Maximum speed
+       MOV  *R5+,*R6+    Moving 128 BYTES at Maximum speed
+       MOV  *R5+,*R6+    Moving 128 BYTES at Maximum speed
+       MOV  *R5+,*R6+    Moving 128 BYTES at Maximum speed
+       MOV  *R5+,*R6+    Moving 128 BYTES at Maximum speed
+       MOV  *R5+,*R6+    Moving 128 BYTES at Maximum speed
+       MOV  *R5+,*R6+    Moving 128 BYTES at Maximum speed
+       MOV  *R5+,*R6+    Moving 128 BYTES at Maximum speed
+       MOV  *R5+,*R6+    Moving 128 BYTES at Maximum speed
+       MOV  *R5+,*R6+    Moving 128 BYTES at Maximum speed
+       MOV  *R5+,*R6+    Moving 128 BYTES at Maximum speed
+       MOV  *R5+,*R6+    Moving 128 BYTES at Maximum speed
+       MOV  *R5+,*R6+    Moving 128 BYTES at Maximum speed
+       MOV  *R5+,*R6+    Moving 128 BYTES at Maximum speed
+       MOV  *R5+,*R6+    Moving 128 BYTES at Maximum speed
+       MOV  *R5+,*R6+    Moving 128 BYTES at Maximum speed
+       MOV  *R5+,*R6+    Moving 128 BYTES at Maximum speed
+       MOV  *R5+,*R6+    Moving 128 BYTES at Maximum speed
+       MOV  *R5+,*R6+    Moving 128 BYTES at Maximum speed
+       RTWP
+**********************************
+* SORT RECORDS, sorts all        *
+* 128 BYTES                      *
+**********************************
+SORT   DATA >8300,SORT1
+SORT1  BLWP @MOVREC      Move 128 Bytes
+       DATA NXTADR,COM$BF
+       MOV  @NXTREC,R4   Save record no.
+       LI   R8,SORTAB    Set sort table pionter
+       MOV  @NUMREC,R12
+       JEQ  SHFTAC
+       LI   R10,1
+       MOV  R10,R9
+       CI   R12,16
+       JL   COMP16
+       MOV  R12,R9
+       SRL  R9,1
+UPDOWN MOV  R9,R2
+       DEC  R2
+       SLA  R2,1
+       MOV  @SORTAB(R2),@NXTREC
+       BLWP @GETPAG
+       LI   R5,STRFLD         Set sort field table pointer
+M$CHL  MOV  *R5+,R0           Start of field
+       JLT  DUPREC
+       MOV  *R5+,R1           Length of field
+       MOV  @NXTADR,R3        Reset record pointer
+       A    R0,R3
+       AI   R0,COM$BF         Reset record pointer
+M$CHK  CB   *R0+,*R3+
+       JL   M$DOWN
+       JH   M$UP
+       DEC  R1
+       JNE  M$CHK
+       JMP  M$CHL
+M$UP   MOV  R9,R10
+       MOV  R12,R1
+       S    R9,R1
+       CI   R1,16
+       JL   COMP16
+       A    R12,R9
+       SRL  R9,1
+       JMP  UPDOWN
+M$DOWN MOV  R9,R12
+       MOV  R10,R9
+       MOV  R12,R1
+       S    R9,R1
+       CI   R1,16
+       JL   COMP16
+       A    R12,R9
+       SRL  R9,1
+       JMP  UPDOWN
+COMP16 DEC  R9
+       SLA  R9,1
+       A    R9,R8
+COOP16 MOV  *R8+,@NXTREC       *
+       JLT  SHFTAB
+       BLWP @GETPAG
+       LI   R5,STRFLD         Set sortfield pointer
+COPP17 MOV  *R5+,R0           Start of field
+       JLT  DUPREC
+       MOV  *R5+,R2           Length of field
+       MOV  @NXTADR,R3        Reset record pointer
+       A    R0,R3
+       AI   R0,COM$BF         Reset record pointer
+COPP16 CB   *R0+,*R3+         *
+       JL   SHFTAB
+       JH   COOP16
+       DEC  R2
+       JNE  COPP16
+       JMP  COPP17
+SHFTAB DECT R8
+SHFTAC MOV  *R8,R2
+       JLT  SHFFLG
+       MOV  R4,*R8+
+       MOV  R2,R4
+       JMP  SHFTAC
+SHFFLG MOV  R4,*R8+
+       MOV  R2,*R8
+SORTRT RTWP
+DUPREC LWPI WSPACE
+       MOV  @MERGYS,@MERGYS
+       JNE  DMPREC
+       BLWP @WRTSCR
+       DATA DUPMSG
+       BL   @UPPER
+DUPRED BL   @SCAN
+       MOVB @KEYVAL,R1
+       CB   R1,@YNCHK
+       JEQ  DUPREE
+       CB   R1,@YNCHK+1
+       JNE  DUPRED
+       MOV  @ADED,R1
+       JNE  DUPREF
+       INC  @FRESLT
+       MOV  @FRESLT,R1
+       LI   R2,TABSOR
+       SLA  R1,1
+       S    R1,R2
+       MOV  @INPREC,*R2
+       BL   @SRCREC
+       B    @EDKEY0
+DUPREE MOV  @INPREC,@NXTREC
+       BLWP @GETPAG
+       BL   @UPLOW
+       BLWP @CLEAR
+       DATA 706,28
+       MOV  @ADED,R13
+       BL   @INSAV
+       MOV  R13,@ADED
+       BLWP @SORT
+DUPRT  B    @>0000
+DMPREC B    @FILMRH
+DUPREF BL   @CLRFLD
+       DATA INPOS
+       BLWP @CLEAR
+       DATA 706,51
+       BLWP @WRTSCR
+       DATA AD
+       B    @INPT1
+ 
+********************
+*CLEAR INPUT FIELDS*
+********************
+CLRFLD MOV  *R11+,R5
+CRFLD0 MOV  *R5+,@CRFLD1     GET VDP ADDRESS
+       JLT  CRFLD3
+       MOV  *R5+,@CRFLD2     GET MAX. LENGTH
+       BLWP @CLEAR
+CRFLD1 DATA >0000
+CRFLD2 DATA >0000
+       JMP  CRFLD0
+CRFLD3 RT
+ 
+**********************************
+* This routine writes one record *
+* to the screen                  *
+**********************************
+WRTDAT MOV  *R11+,R1     Get address of rec storage
+       MOV  *R11+,R3     Get screen ad/length table
+       MOV  *R1,R1
+WRTDAV MOV  *R3+,R0
+       JLT  WRTDAW
+       MOV  *R3+,R2
+       BLWP @VMBW
+       A    R2,R1
+       JMP  WRTDAV
+WRTDAW RT
+ 
+**********************************
+* Control Cursor Routine, Redo,  *
+* Begin, Back and Proceed        *
+**********************************
+INPUT  MOV  *R11+,@INPUT1+2
+       MOV  *R11+,@TABNO+2
+       MOV  R11,@INRTN+2
+INPUT0 MOV  @CDAD,R7       Check if code input
+       JNE  R70000         No, then clear R7
+       LI   R7,100         Yes, Make sure R7 never have a 9
+       JMP  R15000
+R70000 CLR  R7
+R15000 CLR  R15
+INPUT1 LI   R5,>0000
+INPUT2 MOV  *R5+,R0
+       JLT  INPUT5
+       MOV  *R5+,R2
+       INC  R7
+       CI   R7,11       Check if at code input
+       JEQ  CODES       Yes, put valid codes on screen
+INPUT3 LI   R3,FTABS
+TABNO  LI   R4,>0000
+       BLWP @WRTSCR
+       DATA BEEP0
+       BLWP @CURSUB
+       MOV  R1,R1
+       JNE  FUNCT
+       MOV  R15,R15
+       JNE  INPUT6
+       CI   R7,10        Check if at phone# input
+       JEQ  CODE1        Yes, Go see if input correct
+       CI   R7,11        Check if at code input
+       JEQ  PUTTOP       Restore screen
+       JMP  INPUT2
+INPUT5 INCT R5
+       INC  R7
+       MOV  @NOPRO,@NOPRO
+       JEQ  INRTN
+       SETO R15
+       SETO R14          Enable PROC'D key
+       BLWP @WRTSCR
+       DATA MSG
+INPUT6 CLR  @NOCUR
+       LI   R0,767
+       LI   R2,1
+       JMP  INPUT3
+ 
+CODE1  BL   @SAVDAT
+       DATA INPOS2,SCRPU
+       LI   R1,SCRPT
+       LI   R2,10
+       CLR  R0
+CODET  MOVB *R1+,R0
+       DEC  R2
+       JNC  CODEU
+       CI   R0,>3900   Compare to "9" Dec 57
+       JH   R0RTN
+       CI   R0,>3000   Compare to "0" Dec 48
+       JHE  CODET
+       CI   R0,>2000   Compare to " " Dec 32
+       JEQ  CODET
+R0RTN  LI   R0,562     >0000
+R2RTN  LI   R2,3       >0000
+       DECT R7
+       AI   R5,-8
+       JMP  INPUT3      ***  ADD CODES DISPLAY
+CODEU  JMP  INPUT2
+BEGIN  MOV  @SAVFLG,@SAVFLG   Check if scr. restored
+       JEQ  BEGIN1            If yes move on
+       BL   @RESSCR           Restore screen
+BEGIN1 JMP  INPUT0
+BACK   B    @MMENU
+ 
+CODES  BLWP @READSC    Read & save part of screen
+       BLWP @CLEAR     * Clear part of ecrssn
+       DATA 320,352    *
+       BLWP @WRTSCR    * Put codes on the screen
+       DATA INCODE     *
+       SETO @SAVFLG    Set flag to on
+       JMP  INPUT3
+PUTTOP BL   @RESSCR
+       JMP  INPUT2
+STORE  MOV  @SAVFLG,@SAVFLG   Check if scr. restored
+       JEQ  STORE1            If yes move on
+       BL   @RESSCR           Restore screen
+STORE1 MOV  @ADED,@ADED
+       JEQ  INRTN
+       MOV  R14,R14
+       JEQ  INPUT3
+INRTN  B    @>0000
+FUNCT  SETO @NOCUR
+       CB   *R3+,R1
+       JEQ  REDO         Back one field (REDO) 6
+       CB   *R3+,R1
+       JEQ  STORE        Store record (PROC'D) 12
+       CB   *R3+,R1
+       JEQ  BEGIN        Back to first field (BEGIN) 14
+       CB   *R3+,R1
+       JEQ  BACK         Return to main menu (BACK)  15
+       CB   *R3,R1
+       JEQ  AID          Catalog a disk (AID)   1
+       CLR  @NOCUR
+FUNCU  B    @INPUT3
+REDO   CLR  R15
+       CI   R7,101    Check if code input
+       JEQ  FUNCU
+       CI   R7,1
+       JEQ  FUNCU
+       AI   R5,-8
+       CI   R7,11
+       JEQ  PUTTP
+       DECT R7
+PUTTU  B    @INPUT2
+PUTTP  DECT R7
+       MOV  @SAVFLG,@SAVFLG   Check if flag on/off
+       JEQ  CODES             Off, write codes to scr.
+       JMP  PUTTOP            On, clear codes & restore screen
+RESSCR BLWP @WRTSCR      Write stored section back on screen
+       DATA STOSCS
+       CLR  @SAVFLG      Set flag to off
+       RT
+****************************
+AID    BL   @DSKCAT
+       B    @FRMCAT
+********************************
+* Save a section of screen     *
+********************************
+READSC DATA >8300,READSD
+READSD LI   R0,320       Screen address to start reading from
+       LI   R1,STOSCR    VDP address to store part of screen
+       LI   R2,352       Length to read
+       BLWP @VMBR
+       RTWP
+**********************************
+* Stop and GO routine            *
+**********************************
+STOPGO MOV  R11,@GO+2
+       CLR  @TIMER
+PAUSE  LIMI 2
+       LIMI 0
+       BLWP @KSCAN
+       MOVB @STATUS,@STATUS
+       JNE  STOP
+       CB   @TIMER,@HEX3C     DEC 60
+       JNE  PAUSE
+       JMP  GO
+STOP   CB   @KEYVAL,@FTABS+3
+       JEQ  GOBAK
+       BLWP @WRTSCR
+       DATA GO0
+       BL   @SCAN
+       BLWP @WRTSCR
+       DATA STOP0
+GO     B    @>0000
+GOBAK  B    @MMENU
+************************************
+* Get address of code for comprison*
+************************************
+PCOD01 MOV  R11,@PCOD02+2
+       MOV  *R8+,@NXTREC
+       JLT  PCOD03
+       BLWP @GETPAG
+       MOV  @NXTADR,R7
+       AI   R7,91
+PCOD02 B    @>0000
+PCOD03 B    @>0000
+**********************************
+* Test codes when three are      *
+* selected                       *
+**********************************
+THRESB MOV  R11,@THRESD+2
+       LI   R2,3
+       LI   R5,CDBUF
+       LI   R0,TSTBUF
+THRESC CB   *R5+,*R0+
+       JNE  THRESD
+       DEC  R2
+       JNE  THRESC
+THRERT B    @>0000
+THRESD B    @>0000
+**********************************
+* Put display screen on screen   *
+**********************************
+PCODE2 BLWP @CLEAR
+       DATA 0,759
+       BLWP @WRTSCR
+       DATA M4H
+       BLWP @WRTSCR
+       DATA M3H
+       RT
+**********************************
+* Number to ASCII-HEXADECIMAL    *
+*Parameters: Storage,New Buffer  *
+**********************************
+HEXASC MOV  *R11+,R0
+       MOV  *R11+,R1
+       MOVB *R0+,R2
+       JEQ  HXASC2
+       SRL  R2,8
+HXASC1 MOVB *R0,R3
+       SRL  R3,12
+       MOVB @HEX(R3),*R1+
+       MOVB *R0+,R3
+       SLA  R3,4
+       SRL  R3,12
+       MOVB @HEX(R3),*R1+
+       DEC  R2
+       JNE  HXASC1
+HXASC2 RT
+**********************************
+* ASCII-HEXADECIMAL TO NUMBER    *
+* R2 should contain length       *
+* Parameters: STRING ADR,BUFFER  *
+**********************************
+ASCHEX MOV  *R11+,R0
+       MOV  *R11+,R1
+       MOV  R11,@ASCHX2+2
+       MOVB R2,*R1+
+       JEQ  ASCHX3
+       SRL  R2,8
+ASCHX1 BL   @ASCHXG
+       SLA  R3,4
+       MOV  R3,R4
+       BL   @ASCHXG
+       A    R3,R4
+       SWPB R4
+       MOVB R4,*R1+
+       DEC  R2
+       JNE  ASCHX1
+ASCHX2 B    @>0000
+ASCHXG MOVB *R0+,R3
+       SRL  R3,8
+       CI   R3,>3A
+       JL   ASCHXH
+       AI   R3,-7
+ASCHXH ANDI R3,>000F
+ASCHX3 RT
+**********************************
+* Routine to get floating point  *
+* string from VDP and convert it *
+* interger and put in the Buffer *
+* BL   @CONFI :DATA Buffer adr.  *
+**********************************
+CONVFI MOV  *R11+,@CONVFJ+2
+       A    R2,R0             Move pointer to next string
+       BLWP @VSBR             Get length of 2nd string
+       SRL  R1,8              Shift it to LSB
+       MOV  R1,R2             Move it to R2
+       JEQ  CONVFK            If equal to 0 the return
+       INC  R0                Move pointer to start of string
+       LI   R1,FAC            FAC=>834A address for Floating->Interger convert
+       BLWP @VMBR             Move string from VDP to CPU
+       BLWP @XMLLNK           CFI routine
+       DATA CFI
+CONVFJ MOV  *R1,@>0000        Result in FAC; moved to Buffer
+CONVFK RT
+**********************************
+* Routine to clear buffer space  *
+* BL   @CATCLR                   *
+* DATA BUFFER ADDRESS,LENGTH     *
+**********************************
+CATCLR MOV  *R11+,@CATCLS+2
+       MOV  *R11+,@CATCLT+2
+CATCLS LI   R0,>0000
+CATCLT LI   R2,>0000
+       LI   R1,>2000
+CATCLU MOVB R1,*R0+
+       DEC  R2
+       JNE  CATCLU
+       RT

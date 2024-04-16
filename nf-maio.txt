@@ -1,0 +1,779 @@
+****************************************************************
+* NF-MAIO  v2.00.01/26/91.CC.OPA  PART 2 OF MAIN ASSEMBLY CODE *
+****************************************************************
+*                                                              *
+* Source Published: 04/16/2024 garyopa.com / ti99.atariage.com *
+*                                                              *
+* Copyrighted 1991 by Gary Bowser and Cecil Chin from O.P.A.   *
+*                                                              *
+* Credit Must Be Included When Using Source from RECALLIT 2001 *
+*                                                              *
+****************************************************************
+******************
+* Search routine *
+******************
+SRCH0  MOV  @SORTAB,R0
+       JLT  SRCHNO
+SRCH$  BLWP @CLEAR
+       DATA 0,759
+       BLWP @WRTSCR
+       DATA SCHINP
+       BLWP @WRTSCR
+       DATA CDDIS
+       SETO @NOPRO
+       CLR  @ADED
+SRCH1  BL   @INPUT
+       DATA SCHINQ,4
+       BL   @SAVDAT
+       DATA SCHINQ,HEADIO+10
+       MOVB R2,@HEAD3(R2)
+       BL   @SAVDAT
+       DATA SCHINQ,CDBUG$
+       C    @CDBUF$,@HEX20
+       JEQ  SRCH1
+       BLWP @NOSPCE
+       DATA CDBUF$,10
+       MOV  @SAVLEN,@SCHSU1+2
+       JEQ  SRCH$
+       BL   @FLDSEL         Select search field/s
+       BLWP @CLEAR
+       DATA 0,759
+       BLWP @WRTSCR
+       DATA MENU7
+       BL   @FNDNUM
+       DATA COMNUQ
+SRCHNO BL   @ARYMSG
+       B    @MMENU
+ 
+FLDSEL MOV  R11,@FLDSCH+2
+       BLWP @CLEAR
+       DATA 194,566
+       BLWP @WRTSCR
+       DATA FLDS0
+       BLWP @WRTSCR
+       DATA FLDS1
+FLDKEY BL   @UPPER
+       BL   @SCAN
+       BL   @UPLOW
+       CLR  R1
+       MOVB @KEYVAL,R1
+       CI   R1,>0C00       Proceed key
+       JEQ  FLDKEW
+       CI   R1,>0F00       Back key
+       JEQ  FLDKEX
+       CI   R1,>4100       'A'
+       JEQ  ALLFLD
+       CI   R1,>4200       'B'
+       JL   FLDKEY
+       CI   R1,>4B00       'K'
+       JH   FLDKEY
+       SRL  R1,8
+       AI   R1,-65
+       SLA  R1,1
+       MOV  @FLDS3(R1),R3
+       INV  *R3
+       JEQ  FLGOFF
+       LI   R4,MSGON
+       JMP  FLGOFG
+FLDKEX B    @SRCH$
+FLGOFF LI   R4,MSGOF
+FLGOFG LI   R5,FLDS2
+       A    R1,R5
+       MOV  *R5+,R3
+       MOVB *R4+,*R3+
+       MOVB *R4+,*R3+
+       MOVB *R4,*R3
+       BLWP @WRTSCR
+       DATA FLDS1
+       JMP  FLDKEY
+FLDKEW LI   R6,10
+       LI   R4,FLDS3+2
+FLDKEZ MOV  *R4+,R5
+       MOV  *R5,R5
+       JLT  FLDSCH
+       DEC  R6
+       JNE  FLDKEZ
+       JMP  FLDKEY
+ALLFLD LI   R4,FLDS3+2
+       LI   R6,10
+ALLFLE MOV  *R4+,R3
+       SETO *R3
+       DEC  R6
+       JNE  ALLFLE
+       LI   R5,FLDS2+2
+       LI   R4,MSGON
+       LI   R6,10
+ALLFLG MOV  *R5+,R3
+       MOVB *R4+,*R3+
+       MOVB *R4+,*R3+
+       MOVB *R4,*R3
+       DEC  R6
+       JEQ  ALLFLF
+       DECT R4
+       JMP  ALLFLG
+ALLFLF BLWP @WRTSCR
+       DATA FLDS1
+       JMP  FLDKEY
+FLDSCH B    @>0000
+ 
+SCHLAB BLWP @CLEAR
+       DATA 0,759
+       BLWP @WRTSCR
+       DATA M3H6
+       LI   R0,PABADR
+       LI   R1,PRTPAB
+       LI   R2,30
+       BLWP @VMBW
+       BL   @DSREXE
+       LI   R1,>0300
+       BLWP @VSBW
+       LI   R8,SORTAB  * ADD SEARCH LABEL PRINTER
+       LI   R0,PRTRT
+       MOV  R0,@SCHEN1+2
+SCHLAC BL   @SCHSUB
+       LI   R5,1
+       BL   @PRTLAB
+       BL   @PRTDEL
+       JMP  SCHLAC
+ 
+SCHPRT LI   R8,SORTAB
+       CLR  @SCHFLG
+       LI   R0,SCHPRV
+       MOV  R0,@SCHEN1+2
+       BL   @SCHSUB
+       LI   R8,SORTAB
+       BL   @COMSUB
+       BL   @MODSUB
+       MOV  @COLFLG,R0
+       JLT  SCHCMP
+       BL   @PRTSUB
+       DATA 40,80
+       BL   @PUTHED
+       BL   @SETCNT
+SCHPRU BL   @SCHSUB
+       BL   @PRTSUR
+       CI   R10,56
+       JEQ  SCHPR1
+       BL   @PRTDEL
+       JMP  SCHPRU
+SCHPR1 MOV  *R8,*R8
+       JLT  SCHPR2
+       BL   @PRTDL1
+       BL   @PUTHED
+       LI   R10,2
+       JMP  SCHPRU
+SCHPRV MOV  @SCHFLG,@SCHFLG
+       JEQ  SCHENE
+SCHPR2 B    @PRTPTW
+SCHCMP BL   @CMPSCH           Routine to print two column
+       DATA SCHSUB,SCHEN1
+SRCH2  BLWP @CLEAR
+       DATA 0,759
+       BLWP @WRTSCR
+       DATA M4H
+       BLWP @WRTSCR
+       DATA SCHSCR
+       CLR  @SCHFLG
+       LI   R8,SORTAB    Set sort table pointer
+       LI   R0,SCHEND
+       MOV  R0,@SCHEN1+2
+SCHNOW BL   @SCHSUB
+       BL   @CLRFLD
+       DATA INPOS
+       BL   @WRTDAT      Write record to screen
+       DATA NXTADR,INPOS1
+       BLWP @DENUM
+       DATA NXTADR,SCRPT,5
+       BL   @WRTDAT
+       DATA SCRPU,INPOS2
+       BL   @UPPER
+       BL   @SCAN
+       MOVB @KEYVAL,R1
+       CB   R1,@FTABS+3
+       JEQ  SCHRT
+       CB   R1,@SCHSCT
+       JNE  SCHNOW
+SCHED  BL   @UPLOW
+       DECT R8
+       B    @EDKEY0
+SCHEND MOV  @SCHFLG,@SCHFLG * Prints end of file
+       JEQ  SCHENE          * message and
+       BLWP @WRTSCR         * wait for key stroke
+       DATA EFILE           *
+       BL   @UPPER
+       BL   @SCAN           *
+       CB   @KEYVAL,@SCHSCT
+       JEQ  SCHED
+SCHRT  BL   @UPLOW
+       B    @MMENU
+SCHENE MOV  @CDBUG$,@MENU5+12
+       BL   @CALSCR
+       B    @SRCH0
+**********************************
+* Sorry not found routine        *
+**********************************
+CALSCR MOV  R11,@CALRT+2
+       LI   R0,32        > Calculate screen
+       S    R14,R0       > position for
+       SRL  R0,1         > search string
+       AI   R0,384       >
+       MOV  R0,@MENU5+10 >
+       BLWP @CLEAR       * prints name not
+       DATA 0,759        * found message
+       BLWP @WRTSCR      * and wait for
+       DATA MENU5        * key stroke
+       AI   R0,32        Next line down on screen
+       LI   R1,>5F00     Load char to draw line
+       BLWP @VSBW
+       DEC  R14
+       JEQ  CALSCT
+CALSCS INC  R0           Move to next screen position
+       MOVB R1,@VDPWD
+       DEC  R14
+       JNE  CALSCS
+CALSCT BL   @SCAN        *
+CALRT  B    @>0000
+RECMOV BLWP @MOVREC      Move rec to COM$BF for search
+       DATA NXTADR,COM$BF
+       BLWP @DENUM       Decompress tel #
+       DATA COM$BG,SCRPT,5
+       LI   R0,COM$BF    * Move decompressed tel #
+       LI   R1,SCRPT     * to COM$BF
+       AI   R0,123
+       LI   R3,10        *
+RECMOW MOVB *R1+,*R0+    *
+       DEC  R3           *
+       JNE  RECMOW       *
+       RT
+***********************************
+* Routine to find a string ten    *
+* bytes long (Max) searching      *
+* selected fields                 *
+***********************************
+SCHSUB MOV  R11,@RTSCH+2
+SCHSU1 LI   R14,>0000
+       MOV  R9,@SAVR9+2
+       MOV  R10,@SAVR10+2
+SCHBGN LI   R6,CDBUF$    Set search $ pointer
+       MOV  R14,R2       Save search $ length
+       MOV  *R8+,@NXTREC * Calculate record address
+       JLT  SCHEN$       *
+       BLWP @GETPAG      *
+       BL   @RECMOV
+       CLR  R0           Will contain length of field
+       LI   R1,COM$BF    Set record address pointer
+       LI   R3,INPOS3    Set field length pointer
+       LI   R9,FLDS3+2
+SCHGO  INCT R3           Don't need screen address
+       MOV  *R9+,R10
+       A    R0,R1        Calculate field address
+       MOV  R1,R12       Save record address
+       MOV  R1,R7
+       MOV  *R3+,R0      Put length of field in R0
+       JLT  SCHBGN
+       MOV  *R10,R10
+       JEQ  SCHGO
+       MOV  R0,R13       Move length to counter
+       C    R13,R14      Is field < search $?
+       JL   SCHGO        If yes go to next field
+MOV4   MOVB *R12+,R5     Move char for comparison
+       CB   R5,*R6       Compare char
+       JEQ  CHANG
+       XOR  @SPACE,R5    Change to UPPER/LOWER case
+       CB   R5,*R6       Compare again
+       JNE  RESET
+CHANG  DEC  R2           Found a match sub 1 from length SCH $
+       JEQ  SCHFND       If =0 then record found
+       INC  R6           If not move to next char
+       JMP  MOV4         Go and compare next char
+RESET  LI   R6,CDBUF$    Reset search $ pointer
+       MOV  R14,R2       Reset search $ counter
+       DEC  R13          -1 from field
+       C    R13,R14      Is field < search $?
+       JL   SCHGO        If yes go to next field
+       INC  R7           * Move up field pointer by 1
+       MOV  R7,R12       *
+       JMP  MOV4         *
+SCHFND SETO @SCHFLG      Set flag to "yes"
+SAVR9  LI   R9,>0000
+SAVR10 LI   R10,>0000
+RTSCH  B    @>0000
+SCHEN$ MOV  @SAVR9+2,R9
+       MOV  @SAVR10+2,R10
+SCHEN1 B    @>0000
+**********************************
+* Save Data to Disk              *
+**********************************
+LEN000 MOV  *R11+,@LEN01 Put screen address in DATA line
+       MOV  *R11,@MOVE0+2
+       MOV  *R11+,@MVNUM+4 Put ad of buffer for screen print
+       MOV  R11,@LENRET+2  Save return address
+       BL   @SVDATA      Read first input from screen
+LEN01  DATA >0000,EDBUG
+       MOV  R2,@LEN1+2   Save length of string
+       JEQ  SVEDAV
+       LI   R3,EDBUF
+       MOV  R2,R4
+       CLR  R0
+TESTNO MOVB *R3+,R0
+       CI   R0,>3000
+       JL   SVEDAV
+       CI   R0,>3900
+       JH   SVEDAV
+       DEC  R4
+       JNE  TESTNO
+TESTNP LI   R1,3         Offset for SREC buffer
+       DEC  R2
+MVNUM  MOVB @EDBUF(R2),@>0000(R1) * Move string for screen
+       DEC  R1           Move to next position left
+       DEC  R2           * printing
+       JOC  MVNUM        Jump if at end
+       MOV  R1,R1
+       JLT  MVNUN
+       LI   R2,>2000
+MOVE0  MOVB R2,@>0000(R1)
+       DEC  R1
+       JOC  MOVE0
+MVNUN  BL   @ASCBIN      Go and convert string
+LEN1   DATA EDBUF,>0000
+LENRET B    @>0000
+ 
+SVENO  BL   @ARYMSG
+       B    @MMENU
+SVEDAT MOV  @SORTAB,R0
+       JLT  SVENO
+       MOV  @NUMREC,R6   * Calculate no. of sectors
+       INC  R6           * needed to save entire file
+       SRL  R6,1         * Two records per sector
+       INC  R6           * One sector for header
+       BLWP @NXTNUM      Convert number to ASCII
+       DATA AMTSET,3
+       BLWP @CLEAR       Clear screen
+       DATA 0,759
+       BLWP @WRTSCR      * Put message on screen
+       DATA SVEMSG       * 'SAVE COMPLETE FILE'
+       BL   @UPPER
+SVEDAU BL   @SCAN        Go and get keystroke
+       MOVB @KEYVAL,R1   Move value to R1 MSG
+       CB   R1,@YNCHK    Check if it's a 'Y'
+       JEQ  LEN3
+       CB   R1,@YNCHK+1  Check if it's an 'N'
+       JNE  SVEDAU       If not 'N' go back for another
+       BL   @UPLOW
+       BLWP @WRTSCR      * Message
+       DATA SVE000       * 'STARTING & ENDING REC'
+       BLWP @CLEAR
+       DATA 546,28
+       SETO @NOPRO
+SVEDAV BL   @INPUT       Go to Cursor routine
+       DATA SVE003,4
+       BL   @LEN000
+       DATA SVE003,SREC
+       MOV  R6,@COL1    R6 contains converted number
+       JEQ  SVEDAV
+       BL   @LEN000
+       DATA SVE003+4,EREC
+       MOV  R6,@COL2
+       JEQ  SVEDAV
+       C    R6,@NUMREC
+       JH   SVEDAV
+       C    @COL1,R6
+       JH   SVEDAV
+       DEC  @COL1       Sort table counts from '0'
+       JMP  LEN4
+LEN3   BL   @UPLOW
+       CLR  @COL1       Sort table counts from '0'
+       MOV  @NUMREC,@COL2
+       LI   R0,SREC1
+       LI   R1,SREC
+       MOVB *R0+,*R1+
+       MOVB *R0+,*R1+
+       MOVB *R0+,*R1+
+       MOVB *R0+,*R1+
+       MOV  @NUMREC,R6
+       BLWP @NXTNUM
+       DATA EREC,3
+LEN4   BL   @SVERED
+       DATA DRIVE1,>000A
+       LI   R1,>0300     DSR WRITE CODE
+       BLWP @VSBW
+****************************
+* Save Printer codes       *       *
+****************************
+       LI   R0,PABBUF+127     Set pointer to last BYTE of rec
+       MOV  @STRSRT,R1        Move field offset to R!
+       SLA  R1,8              Shift to left BYTE
+       BLWP @VSBW             Write to VDP
+       LI   R2,PRTCD9
+       CLR  R1
+       LI   R0,14
+CDESTP MOV  *R2+,R3
+       JEQ  CDERT
+       MOVB *R3,R4
+       SRL  R4,8
+       SLA  R4,0
+       A    R4,R1
+       DECT R0
+       JMP  CDESTP
+CDERT  MOV  R1,@CDELEN
+       LI   R0,PABBUF    Load R0 with VDP buffer Adr
+       LI   R1,CDELEN
+       LI   R2,2
+       BLWP @VMBW
+       A    R2,R0
+       LI   R3,PRTCD9
+       LI   R2,3
+CDEMRG MOV  *R3+,R1
+       JEQ  CDEMRF
+       INC  R1
+       BLWP @VMBW
+       A    R2,R0
+       JMP  CDEMRG
+*********************************
+* Save selection codes          *
+*********************************
+CDEMRF AI   R0,3
+       LI   R3,CODTAB    Set code address pointer
+       BL   @CDEMR1      Save first 8 codes
+       LI   R0,PABBUF    * Move next 6 codes to VDP buffer
+       LI   R3,CODTAC    *
+       BL   @CDEMR1      *
+*********************************
+* Save all or part of file      *
+*********************************
+       MOV  @COL1,R5
+       MOV  @COL2,R6
+       LI   R8,SORTAB         Set sort table pointer
+       SLA  R5,1
+       A    R5,R8             Calculate Address of starting rec
+       LI   R2,128            Length of each record
+       SRL  R5,1
+       LI   R0,PABBUF         Set VDP buffer address pointer
+SVENXT MOV  *R8+,@NXTREC
+       JLT  SVEEND
+       BLWP @GETPAG
+       MOV  @NXTADR,R1
+       BLWP @VMBW
+       BL   @DSREXE
+       DEC  R6                Minus one from R7 until it's '0'
+       C    R5,R6
+       JNE  SVENXT            Go back if not at the end
+SVEEND LI   R0,PABADR
+       LI   R1,>0100
+       BLWP @VSBW
+       BL   @DSREXE
+       B    @MMENU
+**********************************
+* Read Routine                   *
+**********************************
+READ0  MOV  @SORTAB,R1
+       JLT  READ6
+       BLWP @CLEAR
+       DATA 0,759
+       BLWP @WRTSCR
+       DATA DRIVE4
+       BL   @UPPER
+READ5  BL   @SCAN
+       MOVB @KEYVAL,R1
+       CB   R1,@YNCHK
+       JEQ  FILMRG
+       CB   R1,@YNCHK+1
+       JNE  READ5
+READ6  CLR  @MERGYS
+       LI   R1,DRVRED
+       MOV  R1,@DRIVE2+4
+       LI   R1,READ4
+       MOV  R1,@DSRER5+2
+       MOV  R1,@DSKREU+2
+       BL   @SVERED
+       DATA DRIVE2,>000C
+       LI   R1,>0200
+       BLWP @VSBW
+       BL   @DSREXE
+       LI   R0,PABBUF+127     Set pointer last of rec
+       BLWP @VSBR             Read BYTE
+       SRL  R1,8              Move to right BYTE
+       MOV  R1,@STRSRT        Save field offset
+       BL   @SETSRT           Go and set sort field table
+       LI   R0,PABBUF
+       LI   R1,CDELEN
+       LI   R2,2
+       BLWP @VMBR
+       LI   R2,PRTCD9
+       LI   R0,16
+CDERET MOV  *R2+,R3
+       JEQ  CDEREZ
+       MOV  @CDELEN,R1
+       SRC  R1,0
+       SRL  R1,6
+       MOVB R1,*R3
+       DECT R0
+       JMP  CDERET
+CDEREZ LI   R3,PRTCD9
+       LI   R0,PABBUF+2
+       LI   R2,3
+READA  MOV  *R3+,R1
+       JEQ  READB
+       INC  R1
+       BLWP @VMBR
+       A    R2,R0
+       JMP  READA
+***********************************
+READB  AI   R0,3
+       LI   R3,CODTAB
+       BL   @CDEMR2      Read first 8 codes from VDP
+       BL   @DSREXE
+       LI   R0,PABBUF    Reset PABbuffer pointer
+       LI   R3,CODTAC    Set pointer to table containing 6 codes
+       BL   @CDEMR2      Read next 6 codes from VDP
+READ2  CLR  @NXTREC
+       LI   R8,SORTAB
+       LI   R2,128
+       LI   R0,PABBUF
+READ3  BL   @DSREXE
+       BLWP @GETPAG
+       MOV  @NXTADR,R1
+       BLWP @VMBR
+       MOV  @NXTREC,*R8+
+       INC  @NXTREC
+       JMP  READ3
+READ4  SETO *R8
+       MOV  @NXTREC,@NUMREC
+       BL   @SRCREC
+       B    @MMENU
+FILMRG SETO @MERGYS
+       LI   R1,DRVMRG
+       MOV  R1,@DRIVE2+4
+       LI   R1,FILMRI
+       MOV  R1,@DSRER5+2
+       MOV  R1,@DSKREU+2
+       BL   @SVERED
+       DATA DRIVE2,>000C
+       LI   R1,>0200
+       BLWP @VSBW
+       LI   R2,128
+       LI   R0,PABBUF
+       BL   @DSREXE
+       BL   @DSREXE
+FILMRH BL   @DSREXE
+       MOV  @FRESLT,R4
+       JLT  FILMRJ
+       LI   R5,TABSOR
+       SLA  R4,1
+       S    R4,R5
+       MOV  *R5,@INPREC
+       JMP  FILMRM
+FILMRJ MOV  @NUMREC,@INPREC
+FILMRM MOV  @INPREC,@NXTREC
+       BLWP @GETPAG
+       MOV  @NXTADR,R1
+       BLWP @VMBR
+       BLWP @SORT
+       MOV  @FRESLT,R4
+       JLT  FILMRK
+       DEC  @FRESLT
+       JMP  FILMRL
+FILMRK INC  @INPREC
+FILMRL INC  @NUMREC
+       JMP  FILMRH
+FILMRI BL   @SRCREC
+       BLWP @WRTSCR
+       DATA MRGDUO
+       BL   @SCAN
+       BL   @UPLOW
+       CLR  @MERGYS
+       B    @MMENU
+**********************************
+SVERED MOV  *R11+,@SVEREE
+       MOV  *R11+,@SVEREG+2
+       MOV  R11,@SVEREF+2
+FRMCAT BLWP @CLEAR
+       DATA 0,759
+       BLWP @WRTSCR
+       DATA DRIVE0
+       BLWP @WRTSCR
+SVEREE DATA >0000
+* Put Disk catalog routine here  **
+FTEMP  BL   @UPPER    ***
+       CLR  @NOPRO
+       BL   @INPUT
+       DATA FILPOS,5
+       BL   @SVDATA
+       DATA FILPOS,DRVGET
+       MOV  R2,@FILPAB+8
+       CLR  R0
+       MOVB R0,@FILBUF(R2)
+       BL   @UPLOW
+SVEREG LI   R0,>0000
+       MOV  R0,@FILPAB
+       LI   R0,PABADR
+       LI   R1,FILPAB
+       LI   R2,36
+       BLWP @VMBW
+       BL   @DSREXE
+SVEREF B    @>0000
+**********************************
+* Put string length in PAB       *
+**********************************
+STRLN7 SLA  R7,8
+       MOV  R7,@STRLEO+2
+       JMP  STRLEQ
+STRLEN MOV  *R11+,@STRLEO+2
+STRLEQ MOV  R11,@STRLEP+2
+       LI   R0,PABADR+5
+STRLEO LI   R1,>0000
+       BLWP @VSBW
+       BL   @DSREXE
+STRLEP B    @>0000
+**********************************
+* Convert ASCII to BINARY        *
+**********************************
+ASCBIN MOV  *R11+,R1     Get CPU $ address
+       MOV  *R11+,R2     Get $ length  D
+       CLR  R6
+ASCBIO MOVB *R1+,R0      Move 1st no. to R0
+       SRL  R0,8         Shift it to LSB
+       AI   R0,->30      Subtract 48
+       MPY  @HEXA,R6     Multiply by 10 to determine tenth
+       A    R0,R7
+       MOV  R7,R6
+       DEC  R2
+       JNE  ASCBIO
+       RT                RESULT in R6
+**********************************
+* DSR Link routine               *
+**********************************
+DSREXE MOV  @PA,@POINTR
+       BLWP @DSRLNK
+       DATA 8
+       JEQ  DSRERR
+       RT
+DSRERR MOV  R0,R1
+       SRL  R1,8
+       CI   R1,5
+       JEQ  DSRER5       "End of FILE"
+DSRER0 SLA  R1,1
+       MOV  @ERRSCR(R1),@ER15+4
+       BLWP @WRTSCR
+       DATA ER15
+       BL   @SCAN
+       BL   @SRCREC
+       CLR  @MERGYS
+       B    @MMENU
+DSRER5 B    @>0000
+*********************************
+* Write code and meanings       *
+* to VDP PAB buffer             *
+*********************************
+CDEMR1 MOV  R11,@CDEMRH+2
+       LI   R2,13        Length of String
+CDEMRE MOV  *R3+,R1      * Move code addrtess to R1
+       JEQ  CDESAV       * Check if at end
+       BLWP @VMBW        * write to VDP
+       A    R2,R0        * move pointer to next address
+       JMP  CDEMRE
+CDESAV BL   @DSREXE
+CDEMRH B    @>0000
+ 
+*********************************
+* Read  code and meanings       *
+* from VDP PAB buffer           *
+*********************************
+CDEMR2 MOV  R11,@CDEMRJ+2
+       LI   R2,13        Length of String
+CDEMRI MOV  *R3+,R1      * Move code addrtess to R1
+       JEQ  CDEMRJ       * Check if at end
+       BLWP @VMBR        * reade from VDP
+       A    R2,R0        * move pointer to next address
+       JMP  CDEMRI
+CDEMRJ B    @>0000
+ 
+**********************************
+* Print Labels sub routine       *
+**********************************
+PRTLAB MOV  R11,@PRTLAF+2
+PRTLAG MOV  @NXTADR,R4
+       LI   R0,PABBUF    Set VDP buffer pointer
+       LI   R15,79       Length of string -First Name/Title/prt code *
+       LI   R1,CMPON     Load Compress codes   * 3 spaces & 5 Lfeed
+       MOVB *R1+,R2
+       SRL  R2,8
+       BLWP @VMBW
+       A    R2,R0        Advance VDP buffer pointer
+       A    R2,R15
+       AI   R4,30        Move record Adr. pointer for TITLE
+       MOV  R4,@REMTIT
+       BLWP @NOSPCE
+REMTIT DATA >0000,6
+       MOV  @SAVLEN,R2
+       JEQ  PRTLA0
+       MOV  R4,R1
+       BLWP @VMBW
+       A    R2,R0        Advance VDP buffer pointer
+       A    R2,R15
+       MOVB @SPACE,R1    Add a space after TITLE
+       BLWP @VSBW
+       INC  R0
+       INC  R15
+PRTLA0 AI   R4,-12       Set record pointer to start of F/Name
+       MOV  R4,@REMFN    Length of First Name
+       BLWP @NOSPCE      Set R3 at end of First Name
+REMFN  DATA >0000,12
+       MOV  @SAVLEN,R2
+       JEQ  PRTLAC       * If found then Jump
+PRTLAE MOV  R4,R1
+       BLWP @VMBW
+       A    R2,R15       Add length of First Name
+       A    R2,R0
+       MOVB @SPACE,R1    Add space after First Name
+       BLWP @VSBW
+       INC  R0
+       INC  R15
+PRTLAC SLA  R15,8        Shift to MSB
+       MOV  R15,@PRTLAH  Move to DATA line
+       AI   R4,-18       Set record pointer to L/Name adr.
+       LI   R2,18        Length of Last Name
+       MOV  R4,R1
+       BLWP @VMBW
+       A    R2,R0
+       MOVB @LFEED,R1
+       BLWP @VSBW
+       INC  R0
+       AI   R4,36        Set record pointer for Address
+       MOV  R4,R1
+       LI   R2,28        Length of Address
+       BLWP @VMBW
+       MOVB @LFEED,R1
+       A    R2,R0
+       BLWP @VSBW
+       INC  R0
+       AI   R4,28        Set pointer to City
+       LI   R2,14
+       MOV  R4,R1
+       BLWP @VMBW
+       A    R2,R0
+       MOVB @SPACE,R1
+       BLWP @VSBW
+       INC  R0
+       A    R2,R4        Move pointer to Province
+       MOV  R4,R1
+       LI   R2,4
+       BLWP @VMBW
+       A    R2,R0
+       MOVB @LFEED,R1
+       BLWP @VSBW
+       INC  R0
+       A    R2,R4        Set pointer to get Postal Code
+       LI   R2,9
+       MOV  R4,R1
+       BLWP @VMBW
+       A    R2,R0
+       LI   R1,LFEED
+       LI   R2,2
+       BLWP @VMBW
+       BL   @STRLEN
+PRTLAH DATA >0000
+       DEC  R5
+       JEQ  PRTLAF
+       B    @PRTLAG
+PRTLAF B    @>0000

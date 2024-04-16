@@ -1,0 +1,154 @@
+****************************************************************
+* NF-MAIR     v2.00.01/26/91.CC.OPA  Recallit Sorting Routines *
+****************************************************************
+*                                                              *
+* Source Published: 04/16/2024 garyopa.com / ti99.atariage.com *
+*                                                              *
+* Copyrighted 1991 by Gary Bowser and Cecil Chin from O.P.A.   *
+*                                                              *
+* Credit Must Be Included When Using Source from RECALLIT 2001 *
+*                                                              *
+****************************************************************
+ 
+*********************************
+* Sort by field routine         *
+*********************************
+SORFLD LI   R1,FLDS2+2   Table of adr of fields
+SORFLE LI   R0,MSGOF          OFF message
+       MOV  *R1+,R2           Get address of field
+       JEQ  SORFLF            Check if at end
+       BL   @MOVTXT           Put "OFF" in text
+       JMP  SORFLE
+SORFLF MOV  @STRSRT,R5        Get sort field offset
+       MOV  R5,R6             Save R5 to use if "BACK"
+       MOV  @FLDS2+2(R5),R2   Get field to sort by
+       MOV  R2,R1             Save R2
+       LI   R0,MSGON          Put "ON" in selected field
+       BL   @MOVTXT
+       AI   R1,7              Don't need 1st 7 BYTES of text
+       MOV  R1,@FLDS4+16      Put field name in WRTSCR DATA
+       BLWP @CLEAR
+       DATA 0,759
+       BLWP @WRTSCR           Write heading
+       DATA FLDS4
+       BLWP @WRTSCR           Write fields to screen
+       DATA FLDS5
+SORKEY BL   @UPPER            Put keyboard in upper case mode
+       BL   @SCAN
+       BL   @UPLOW            Back to upper/lower case
+       MOVB @KEYVAL,R1
+       SRL  R1,8
+       CI   R1,12             Proceed
+       JEQ  SORROU
+       CI   R1,15             Back
+       JEQ  BMENU
+       CI   R1,66             "B"
+       JL   SORKEY
+       CI   R1,75             "K"
+       JH   SORKEY
+       AI   R1,-66            Make 66-75, 0-9
+       SLA  R1,1              Mpy by 2, word operation
+       MOV  @STRSRT,R5        Get old offset
+       MOV  @FLDS2+2(R5),R2   * Turn off old field
+       LI   R0,MSGOF          *
+       BL   @MOVTXT           *
+       MOV  @FLDS2+2(R1),R2   * Turn on new field
+       LI   R0,MSGON          *
+       BL   @MOVTXT           *
+       MOV  R1,@STRSRT        Save new offset
+       BLWP @WRTSCR
+       DATA FLDS5
+       JMP  SORKEY
+BMENU  MOV  R6,@STRSRT
+       B    @MMENU
+SORROU MOV  @STRSRT,R1
+       C    R6,R1             Check if new field same as old
+       JEQ  FINSRT
+       MOV  @FLDS2+2(R1),R2
+       AI   R2,7
+       MOV  R2,@SMSG0+8
+       MOV  @NUMREC,R6        Move number of records to R6
+       JEQ  FINSRT
+       SRL  R6,4              Divide by 16(no. of rec per sec)
+       BLWP @NXTNUM           Comvert to ASCII
+       DATA SORTIM+20,2
+       BLWP @CLEAR
+       DATA 320,439
+       BLWP @WRTSCR
+       DATA SMSG0
+       BL   @SETSRT           Set up sort field table
+******************************
+* Flag all free slot to make *
+* sorting faster             *
+******************************
+       MOV  @FRESLT,R3        Get free slot offset
+YESFRE MOV  R3,R0
+       JLT  NOFREE            Check if at end
+       LI   R2,TABSOR         Set free slot table pointer
+       SLA  R0,1              Mpy by 2, word operation
+       S    R0,R2             Set pointer to a free slot #
+       MOV  *R2,@NXTREC       Set parameter for GETPAG
+       BLWP @GETPAG           Set RAMBO page with slot
+       MOV  @NXTADR,R1        Get slot address
+       SETO *R1               Flag address
+       DEC  R3
+       JMP  YESFRE
+NOFREE MOV  @NUMREC,R15       Get number of records
+       CLR  @NUMREC           Set record counter to 0
+       SETO @SORTAB
+       SETO R14               0 to ...parameter for GETPAG
+NOFREF INC  R14
+       MOV  R14,@NXTREC
+       BLWP @GETPAG           Set RAMBO page with record
+       MOV  @NXTADR,R0        Get address of record
+       MOV  *R0,*R0           Check for flag
+       JLT  NOFREF
+       BLWP @SORT
+       INC  @NUMREC
+       DEC  R15
+       JNE  NOFREF            Check if at end
+FINSRT B    @MMENU
+**********************************
+* Set up small table for sorting *
+* by different field             *
+**********************************
+SETSRT MOV  @STRSRT,R1        Get field offset
+       MOV  @RECTAB(R1),R3    Get field
+       LI   R1,STRFLD         Set sortfield setup table pointer
+       MOVB R3,R2             Starting position of field
+       JEQ  FELD01            Check if first field
+       SRL  R2,8              Move BYTE from to right
+       ANDI R3,>00FF          Get ending position "strit away LEFT BYTE
+       INC  R3                Starting position of next field
+       MOV  R3,R4             Save R3
+       CI   R3,128            Check if last field
+       JEQ  FELD10
+       S    R2,R3             Get length of field
+       MOV  R2,*R1+           Put start of 1st field in table
+       MOV  R3,*R1+           Put length of 1st field in table
+       CLR  *R1+              Start of 2nd section
+       MOV  R2,*R1+           Length of 2nd section
+       LI   R3,128            Length of record
+       S    R4,R3             Get length of 3rd section
+       MOV  R4,*R1+           Start of 3rd section
+       MOV  R3,*R1+           Length of 3rd section
+       JMP  SETSRU
+FELD01 CLR  *R1+        Sorting by 1st, so just one section
+       LI   R2,128
+       MOV  R2,*R1+
+       JMP  SETSRU
+FELD10 S    R2,R3       Sorting by last field, two sections
+       MOV  R2,*R1+           Start of 1st section
+       MOV  R3,*R1+           Length of 1st section
+       CLR  *R1+              Start of last section
+       MOV  R2,*R1+           Length of last section
+SETSRU SETO *R1               End marker
+       RT
+*********************************
+* Move ON/OFF message           *
+*********************************
+MOVTXT MOVB *R0+,*R2+
+       MOVB *R0+,*R2+
+       MOVB *R0+,*R2+
+       RT
+ 

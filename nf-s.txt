@@ -1,0 +1,74 @@
+****************************************************************
+* NF-S     v2.00.01/26/91.CC.OPA  RECALLIT BY CECIL CHIN & OPA *
+****************************************************************
+*                                                              *
+* Source Published: 04/16/2024 garyopa.com / ti99.atariage.com *
+*                                                              *
+* Copyrighted 1991 by Gary Bowser and Cecil Chin from O.P.A.   *
+*                                                              *
+* Credit Must Be Included When Using Source from RECALLIT 2001 *
+*                                                              *
+****************************************************************
+ 
+*****  *****  *****  *****  *      *      *****  *****
+*   *  *      *      *   *  *      *        *      *
+*   *  *      *      *   *  *      *        *      *
+*****  ****   *      *****  *      *        *      *
+* *    *      *      *   *  *      *        *      *
+*  *   *      *      *   *  *      *        *      *
+*   *  *****  *****  *   *  *****  *****  *****    *
+ 
+       TITL 'RECALLIT BY CECIL G. CHIN'
+       IDT  'RECALLIT'
+       DEF  SFIRST,SLAST,SFREE
+ 
+BEEP   EQU  >0034        Address of BEEP sound
+HONK   EQU  >0036        Address of HONK sound
+ 
+VDPADR EQU  >01F8        ????
+PABADR EQU  >1000        Address of VDP  PAB header
+PABBUF EQU  >1100        Address of VDP  PAB buffer
+VDPSND EQU  >38CC        Address of VDP  sound table
+ 
+XMLTAB EQU  >0CFA        Starting address of XMLLNK
+CATBUF EQU  >1200        VDF buffer to store catalog
+CFI    EQU  >1200        Convert floating to Interger offset
+FAC    EQU  >834A        Address to put number for conversion
+DSRNAM EQU  >8354        Length  of VDP  PAB DSR name
+POINTR EQU  >8356        Pointer to VDP  PAB length byte
+KEYADR EQU  >8374        Address of SCAN mode select
+KEYVAL EQU  >8375        Value of current key being pressed
+TIMER  EQU  >8379        Address of VDP  timer
+STATUS EQU  >837C        Status of new key pressed
+USRINT EQU  >83C4        Address in CPU  PAD of USER INTERRUPT address
+SNDNUM EQU  >83CE        Number of sound bytes left
+GPLWS  EQU  >83E0        Address of GPL  workspace
+SP$ROM EQU  >83D0        Search pointer for DSR linking
+VDPR1  EQU  >83D4        Address in CPU  PAD of VDP R1 value
+ 
+VDPRD  EQU  >8800        Address of VDP  READ  DATA    PORT
+VDPWD  EQU  >8C00        Address of VDP  WRITE DATA    PORT
+VDPWA  EQU  >8C02        Address of VDP  WRITE ADDRESS PORT
+ 
+SORTAB EQU  >2000        Start of sort table
+TABSOR EQU  >3FFE        End of sort table
+ 
+       AORG >A000             STARTING ADDRESS OF THE RECALLIT PROGRAM
+ 
+SFIRST COPY "DSK6.NF-MAIN"    PART 1 OF THE MAIN ASSEMBLY CODE
+       COPY "DSK6.NF-MAIO"    PART 2 OF THE MAIN ASSEMBLY CODE
+       COPY "DSK6.NF-MAIP"    PART 3 OF THE MAIN ASSEMBLY CODE
+       COPY "DSK6.NF-MAIQ"    PART 4 OF THE MAIN ASSEMBLY CODE
+       COPY "DSK6.NF-MAIR"    PART 4 OF THE MAIN ASSEMBLY CODE
+       COPY "DSK6.NF-SUBS"    MOST OF THE COMMON SUB's
+       COPY "DSK6.NF-BLWP"    MOST OF THE COMMON BLWP's
+       COPY "DSK6.NF-TEXT"    ALL THE MENU/PRINTER ASCII TEXT
+       COPY "DSK6.NF-DATA"    ALL THE DATA,BYTES,BSS's
+ 
+SLAST  EQU  $                 ENDING   ADDRESS OF THE RECALLIT PROGRAM
+ 
+SFREE  EQU  >FFFF-SLAST+1     CALC THE FREE SPACE IN THE 24K OF MEMORY
+ 
+       COPY "DSK6.NF-LOW"     THE STANDARD PHOENIX 2001 LOGO FILE
+ 
+       END

@@ -1,0 +1,697 @@
+****************************************************************
+* NF-MAIP  v2.00.01/26/91.CC.OPA  PART 3 OF MAIN ASSEMBLY CODE *
+****************************************************************
+*                                                              *
+* Source Published: 04/16/2024 garyopa.com / ti99.atariage.com *
+*                                                              *
+* Copyrighted 1991 by Gary Bowser and Cecil Chin from O.P.A.   *
+*                                                              *
+* Credit Must Be Included When Using Source from RECALLIT 2001 *
+*                                                              *
+****************************************************************
+ 
+**********************************
+* Routine to find first          *
+* non-blank at end of string     *
+* and save true length of string *
+**********************************
+NOSPCE DATA UTILWS,NOSPCF
+NOSPCF MOV  *R14+,R1     Move buffer address
+       MOV  *R14+,R2     Move maximun length
+       LI   R3,>2000     Load R3 with space char
+       A    R2,R1        Move pointer to end of $ adr+1
+NOSPCG DEC  R1           Move pointer back one Byte
+       CB   *R1,R3       Check if = to a space
+       JNE  NOSPCH       If = end routine
+       DEC  R2           -1 from max. length
+       JEQ  NOSPCH       If R2 =0 end routine
+       JMP  NOSPCG
+NOSPCH MOV  R2,@SAVLEN   Save true length
+       RTWP
+**********************************
+PUTCDE MOV  *R11+,@PUTCDF+2
+PUTCDF LI   R1,>0000
+       MOVB *R1+,R2
+       SRL  R2,8
+       BLWP @VMBW
+       A    R2,R0
+       A    R2,R7
+       RT
+**********************************
+PUTMAR MOV  @CMPFLG,R2
+       JEQ  PUTSPE
+PUTSPF LI   R2,>0000
+PUTSPC LI   R1,>2000
+PUTSPD BLWP @VSBW
+       INC  R0
+       INC  R7
+       DEC  R2
+       JNE  PUTSPD
+PUTSPE RT
+**********************************
+PRT000 MOV  *R11,@PRT001
+       MOV  *R11+,@PRT002+2
+       MOV  *R11+,R2
+       MOV  *R11+,@PUTSPF+2
+       MOV  R11,@PRT005+2
+       BLWP @NOSPCE
+PRT001 DATA >0000,28
+       MOV  @SAVLEN,R1
+       JEQ  PRT006
+       S    R1,R2
+       SRL  R2,1
+       BL   @PUTSPC
+       BL   @PUTMAR
+PRT002 LI   R1,>0000
+       MOV  @SAVLEN,R2
+       BLWP @VMBW
+       A    R2,R7
+PRT003 BL   @STRLN7
+PRT005 B    @>0000
+PRT006 MOVB @LFEED,R1
+       BLWP @VSBW
+       INC  R0
+       INC  R7
+       JMP  PRT003
+**********************************
+CHKYN  MOV  *R11+,@CHKYO+2
+       MOV  R11,@CHKYP+2
+       BL   @UPPER
+CHKYQ  BL   @SCAN
+       LI   R2,YNCHK
+       CB   @KEYVAL,*R2+
+       JEQ  CHKYR
+       CB   @KEYVAL,*R2+
+       JNE  CHKYQ
+CHKYO  SETO @>0000
+CHKYR  BL   @UPLOW
+CHKYP  B    @>0000
+**********************************
+PRTSUB MOV  *R11,@PRTS1+2
+       MOV  *R11+,@PRTS2+2
+       MOV  *R11+,@PRTS3+2
+       MOV  R11,@PRTSUC+2
+       BLWP @CLEAR
+       DATA 0,759
+       BLWP @WRTSCR
+       DATA HEAD0
+       SETO @NOPRO
+       BL   @INPUT
+       DATA HEADIN,4
+       LI   R2,28
+       LI   R3,HEADIO
+PRTPTS MOV  *R3+,R0
+       JLT  PRTPTT
+       MOV  *R3+,R1
+       BLWP @VMBR
+       JMP  PRTPTS
+PRTPTT BLWP @NOSPCE
+       DATA HEAD3,28
+       MOV  @SAVLEN,R2
+       CLR  R0
+       MOVB R0,@HEAD3(R2)
+       LI   R6,32
+       S    R2,R6
+       SRL  R6,1
+       AI   R6,448
+       MOV  R6,@M3H5+10
+       BLWP @CLEAR
+       DATA 0,759
+       BLWP @WRTSCR
+       DATA M3H5
+       LI   R0,PABADR
+       LI   R1,PRTPAB
+       LI   R2,30
+       BLWP @VMBW
+       BL   @DSREXE
+       LI   R1,>0300
+       BLWP @VSBW
+       LI   R0,PABBUF    Set VDP buffer pointer
+       CLR  R7           Will hold length for DSR
+CMPNML LI   R1,>0000
+CMPNMM LI   R2,>0000
+       BLWP @VMBW
+       A    R2,R0
+       A    R2,R7
+       BL   @PUTCDE
+       DATA EXPON        Code for expanded print
+       BL   @PRT000
+PRTS1  DATA HEAD1,40,4
+       LI   R0,PABBUF
+       CLR  R7
+       BL   @PRT000
+PRTS2  DATA HEAD2,40,4
+       LI   R0,PABBUF
+       CLR  R7
+       MOVB @LFEED,R1
+       BLWP @VSBW
+       INC  R0
+       INC  R7
+       BL   @PUTCDE
+       DATA EXPOFF
+       BL   @PRT000
+PRTS3  DATA HEAD3,80,8
+**********************************
+* Codes and meanings next        *
+**********************************
+NOLEP  LI   R0,PABBUF
+       CLR  R7
+       MOVB @LFEED,R1
+       BLWP @VSBW
+       INC  R0
+       INC  R7
+       BL   @PUTMAR
+       LI   R1,PRTTIU
+       LI   R2,18
+       BLWP @VMBW
+       A    R2,R0
+       A    R2,R7
+       MOVB @LFEED,R1
+       BLWP @VSBW
+       INC  R0
+       INC  R7
+       BL   @PUTMAR
+       LI   R2,13
+       LI   R4,5
+       LI   R3,INCODE+8
+PRTCDE MOV  *R3+,R1
+       BLWP @VMBW
+       DEC  R4
+       JEQ  PRTCDF
+       MOV  *R3+,R1
+       JLT  PRTCDG
+       A    R2,R0
+       A    R2,R7
+       LI   R1,>2000
+       BLWP @VSBW
+       INC  R0
+       INC  R7
+       JMP  PRTCDE
+PRTCDF A    R2,R0
+       A    R2,R7
+       MOVB @LFEED,R1
+       BLWP @VSBW
+       INC  R0
+       INC  R7
+       INCT R3
+       BL   @PUTMAR
+       LI   R2,13
+       LI   R4,5
+       JMP  PRTCDE
+PRTCDG A    R2,R0
+       A    R2,R7
+       MOVB @LFEED,R1
+       BLWP @VSBW
+       INC  R7
+       BL   @STRLN7
+PRTSUC B    @>0000
+*******************************
+* Put heading on each page    *
+*******************************
+PUTHED MOV  R11,@PUTHEE+2
+       CLR  R7
+       LI   R0,PABBUF
+       BL   @PUTMAR
+       LI   R1,PRTTIT
+       LI   R2,80
+       BLWP @VMBW
+       A    R2,R0
+       A    R2,R7
+       MOVB @LFEED,R1
+       BLWP @VSBW
+       INC  R0
+       INC  R7
+       BL   @PUTMAR
+       LI   R1,PRTLIN
+       LI   R2,80
+       BLWP @VMBW
+       A    R2,R7
+       BL   @STRLN7
+PUTHEE B    @>0000
+SETCNT LI   R10,11       Will count No. of lines per page
+       CLR  R9           Will count No. of rec. printed
+       CLR  R15          Will count No. of pages
+       RT
+**********************************
+TELFON DATA UTILWS,TELFOO
+TELFOO BLWP @DENUM
+       DATA NXTADR,SCRPT,5
+       LI   R0,SCRPT+3
+       LI   R2,8
+       LI   R1,>2D00      "-"
+       BL   @TELFOP
+       LI   R1,>2D00      "-"
+       LI   R0,SCRPT+7
+       LI   R2,5
+       BL   @TELFOP
+       RTWP
+TELFOP MOVB *R0,R3        Save byte
+       MOVB R1,*R0+
+       DEC  R2
+       JEQ  TELFOQ
+       MOVB R3,R1
+       JMP  TELFOP
+TELFOQ RT
+ 
+PRTSUR MOV  R11,@RTPRT+2
+       CLR  R7           Total No. of BYTES per rec.
+       LI   R0,PABBUF
+       BL   @PUTMAR
+       MOV  @NXTADR,R4
+       MOV  @NXTADR,@PRTPTY
+       BLWP @NOSPCE
+PRTPTY DATA >0000,18
+       MOV  @SAVLEN,R2
+       JEQ  BLNK
+       MOV  R4,R1        Last Name
+       BLWP @VMBW
+       A    R2,R0
+       A    R2,R7
+       LI   R1,COMMA
+       LI   R2,2
+       INCT @SAVLEN
+       BLWP @VMBW
+       A    R2,R0
+       A    R2,R7
+BLNK   AI   R4,18
+       MOV  R4,R1        First Name
+       LI   R2,12
+       BLWP @VMBW
+       A    R2,R0
+       A    R2,R4
+       A    R2,R7
+       LI   R2,21
+       S    @SAVLEN,R2
+       BL   @PUTSPC
+       AI   R4,6
+       MOV  R4,R1        Address
+       LI   R2,28
+       BLWP @VMBW
+       A    R2,R0
+       A    R2,R7
+       LI   R2,2
+       BL   @PUTSPC
+       AI   R4,55
+       MOV  R4,R1        Code
+       LI   R2,4
+       BLWP @VMBW
+       A    R2,R0
+       A    R2,R7
+       LI   R2,1
+       BL   @PUTSPC
+       BLWP @TELFON
+       LI   R1,SCRPT     Phone#
+       LI   R2,12
+       BLWP @VMBW
+       A    R2,R0
+       A    R2,R7
+       MOVB @LFEED,R1
+       BLWP @VSBW
+       INC  R0
+       INC  R7
+       BL   @PUTMAR
+       AI   R4,4
+       MOV  @NOCOM,@NOCOM
+       JNE  NOCOMT
+       MOV  R4,R1        Comments
+       LI   R2,28
+       BLWP @VMBW
+       A    R2,R0
+       A    R2,R7
+       LI   R2,5
+       JMP  COMTON
+NOCOMT LI   R2,33
+COMTON BL   @PUTSPC
+       AI   R4,-31
+       MOV  R4,@PRTPTZ
+       BLWP @NOSPCE
+PRTPTZ DATA >0000,14
+       MOV  @SAVLEN,R2
+       JEQ  BLNL
+       MOV  R4,R1        City
+       BLWP @VMBW
+       A    R2,R0
+       A    R2,R7
+       MOV  @SPACE,R1
+       BLWP @VSBW
+       INC  R0
+       INC  R7
+BLNL   AI   R4,14
+       MOV  R4,R1        Province
+       LI   R2,4
+       BLWP @VMBW
+       A    R2,R0
+       A    R2,R7
+       A    R2,R4
+       MOV  @SPACE,R1
+       BLWP @VSBW
+       INC  R0
+       INC  R7
+       MOV  R4,R1        Postal code
+       LI   R2,9
+       BLWP @VMBW
+       A    R2,R0
+       A    R2,R7
+       MOVB @LFEED,R1
+       BLWP @VSBW
+       INC  R7
+       BL   @STRLN7
+       INC  R9
+       AI   R10,3
+RTPRT  B    @>0000
+**********************
+* Print comment? Y/N *
+**********************
+COMSUB MOV  R11,@COMSUC+2
+       CLR  @NOCOM
+       BLWP @CLEAR
+       DATA 0,759
+       BLWP @WRTSCR
+       DATA PRTCOM
+       BL   @CHKYN       Get Y/N
+       DATA NOCOM
+COMSUC B    @>0000
+**********************
+* Print Inactives?   *
+**********************
+ACTSUB MOV  R11,@ACTSUC+2
+       CLR  @NOACT
+       BLWP @WRTSCR
+       DATA PRTACT
+       BL   @CHKYN       Get Y/N
+       DATA NOACT
+ACTSUC B    @>0000
+**********************
+* Change print mode  *
+**********************
+MODSUB MOV  R11,@CHP2+2
+       MOV  @CMPNMM+2,R0
+       JEQ  CHP1
+       BLWP @WRTSCR
+       DATA CHGPRT
+       BL   @UPPER
+CHP0   BL   @SCAN
+       MOVB @KEYVAL,R1
+       CB   R1,@YNCHK
+       JEQ  CHP1
+       CB   R1,@YNCHK+1
+       JNE  CHP0
+       BL   @UPLOW
+       JMP  CHP2
+CHP1   BL   @UPLOW
+       BLWP @WRTSCR
+       DATA PRTTYP
+ 
+       CLR  @CMPFLG
+       CLR  @COLFLG
+       INCT @COLFLG
+       MOVB @CMPON+1,R1
+       JNE  CHP3
+       BLWP @CLEAR
+       DATA 514,26
+CHP3   BL   @SCAN
+       MOVB @KEYVAL,R1
+       SRL  R1,8
+       CI   R1,>31
+       JEQ  SETPCA
+       CI   R1,>32
+       JEQ  SETELT
+       MOVB @CMPON+1,R0
+       JEQ  CHP3
+       CI   R1,>33
+       JNE  CHP3
+       MOVB @ELITE+1,R1
+       JEQ  CHP5
+       SETO @COLFLG
+       LI   R1,PRTTYS
+       MOV  R1,@CHGPRT+4
+       LI   R1,ELITE
+       JMP  CHP4
+SETPCA MOVB @NORMAL+1,R1
+       JEQ  CHP5
+       LI   R1,PRTTYQ
+       MOV  R1,@CHGPRT+4
+       LI   R1,NORMAL
+       JMP  CHP4
+SETELT MOVB @ELITE+1,R1
+       JEQ  CHP5
+       SETO @CMPFLG
+       LI   R1,PRTTYR
+       MOV  R1,@CHGPRT+4
+       LI   R1,ELITE
+CHP4   MOVB *R1+,R2
+       SRL  R2,8
+       MOV  R1,@CMPNML+2
+       MOV  R2,@CMPNMM+2
+CHP2   B    @>0000
+CHP5   B    @PRT101
+**********************************
+CMPGO  B    @CMPRSD
+PRTPTR BL   @COMSUB
+       BL   @ACTSUB
+       BL   @MODSUB
+       MOV  @COLFLG,R0
+       JLT  CMPGO
+       BL   @PRTSUB
+       DATA 40,80
+       BL   @PUTHED
+       BL   @SETCNT
+       LI   R8,SORTAB
+PRTPTU MOV  *R8+,@NXTREC
+       JLT  PRTPTW
+       BLWP @GETPAG
+       MOV  @NOACT,@NOACT
+       JEQ  PRTPT1
+       MOV  @NXTADR,R1
+       C    @91(R1),@HEX20
+       JEQ  PRTPTU
+PRTPT1 BL   @PRTSUR
+       CI   R10,56
+       JEQ  PRTPTA
+       BL   @PRTDEL
+       JMP  PRTPTU
+PRTPTA MOV  *R8,R0
+       JLT  PRTPTW
+       BL   @PRTDL1
+       BL   @PUTHED
+       LI   R10,2
+       JMP  PRTPTU
+PRTPTW LI   R0,PABBUF
+       LI   R1,LFEED
+       LI   R2,3
+       CLR  R7
+PRTPTC CI   R10,56
+       JEQ  PRTPTB
+       BLWP @VMBW
+       A    R2,R0
+       A    R2,R10
+       A    R2,R7
+       JMP  PRTPTC
+PRTPTB INC  R15
+       MOV  @LFEED,R1
+       BLWP @VSBW
+       INC  R0
+       INC  R7
+       MOV  R9,R6
+       BLWP @NXTNUM
+       DATA ENDLST+14,3
+       MOV  @NUMREC,R6
+       BLWP @NXTNUM
+       DATA ENDLST+22,3
+       BL   @PUTMAR
+       LI   R1,ENDLST
+       LI   R2,32
+       BLWP @VMBW
+       A    R2,R0
+       A    R2,R7
+       LI   R2,36
+       BL   @PUTSPC
+       MOV  R15,R6
+       BLWP @NXTNUM
+       DATA PAGE#+6,1
+       LI   R1,PAGE#
+       LI   R2,8
+       BLWP @VMBW
+       A    R2,R0
+       A    R2,R7
+       LI   R1,LFEED
+       LI   R2,3
+       BLWP @VMBW
+       A    R2,R0
+       A    R2,R7
+       BLWP @VMBW
+       A    R2,R0
+       A    R2,R7
+       MOV  @COLFLG,R2
+       ABS  R2
+       BLWP @VMBW
+       A    R2,R7
+       BL   @STRLN7
+PRTRT  LI   R1,>0100
+       LI   R0,PABADR
+       BLWP @VSBW
+       BL   @DSREXE
+       B    @MMENU
+**********************************
+PRTDL1 MOV  R11,@PRTDL2+2
+       INC  R15
+       LI   R0,PABBUF
+       CLR  R7
+       MOVB @LFEED,R1
+       BLWP @VSBW
+       INC  R0
+       INC  R7
+       BL   @PUTMAR
+       LI   R2,68
+       BL   @PUTSPC
+       MOV  R15,R6
+       BLWP @NXTNUM
+       DATA PAGE#+6,1
+       LI   R1,PAGE#
+       LI   R2,8
+       BLWP @VMBW
+       A    R2,R0
+       A    R2,R7
+       MOVB @LFEED,R1
+       BLWP @VSBW
+       INC  R0
+       INC  R7
+       LI   R1,LFEED
+       LI   R2,3
+       BLWP @VMBW
+       A    R2,R0
+       A    R2,R7
+       A    @COLFLG,R2
+       BLWP @VMBW
+       A    R2,R7
+       BL   @STRLN7
+PRTDL2 B    @>0000
+**********************************
+PRTDEL MOV  R11,@PRTDEM+2
+       BLWP @KSCAN
+       MOVB @STATUS,@STATUS
+       JEQ  PRTDEM
+       CB   @KEYVAL,@FTABS+3
+       JEQ  PRTDEN
+       BLWP @WRTSCR
+       DATA GO0
+       BL   @SCAN
+       CB   @KEYVAL,@FTABS+3
+       JEQ  PRTDEN
+       BLWP @WRTSCR
+       DATA STOP0
+PRTDEM B    @>0000
+PRTDEN B    @PRTRT
+**********************************
+PRT101 BLWP @CLEAR            * Clear and write code screen
+       DATA 0,759             *
+       BLWP @WRTSCR           *
+       DATA PRTDT0            *
+       LI   R5,PRTCD9         Set pointer for code address table
+       LI   R6,PRTDT1         Set pointer for write address table
+PRT100 MOV  *R5+,@PRT200      Move code address to HEXASC data line
+       JEQ  PRTIN0            If done go to input routine
+       MOV  *R6+,@PRTDT2+2    Move address WRTSCR data
+       INCT R6                Skip over the length data in table
+       BL   @CATCLR           Clear temporary buffer
+       DATA CDBUF,28
+       BL   @HEXASC           Convert HEX to ASCII
+PRT200 DATA >0000,CDBUF
+       MOVB R2,*R1+
+       BLWP @WRTSCR           Put it on the screen
+       DATA PRTDT2
+       JMP  PRT100            Jump back up and do some more writing
+ 
+PRTIN0 BL   @UPPER            Upper case only
+PRTIN5 LI   R8,PRTCD9         Set pointer for code table
+       CLR  R15               Proceed key flag
+PRTIN1 LI   R9,PRTDT1         Pointer for input address table
+       JMP  PRTIN6            Skip over next/end checker
+PRTIN4 C    *R9+,*R9+         Add 4 to point to the next entry
+PRTIN6 MOV  R9,@CODEIN        Move input address to data line
+PRTIN2 MOV  *R9,R0            Move input address to R1
+       MOV  @2(R9),R2         Move maximum byte to R2
+PRTIN3 LI   R3,FTABS          Pointer for FCTN keys table
+       LI   R4,4              Number of FCTN keys active
+       BLWP @WRTSCR           * Input beep
+       DATA BEEP0             *
+       BLWP @CURSUB           Cursor routine
+       MOV  R1,R1             Check if FCTN key pressed
+       JNE  FUNCT0            If yes go to FUNCT routine
+       MOV  R15,R15           Check if PROC'D key active
+       JNE  PRTIN3            Need FCTN keypress
+       BL   @SVDATA           Read data from screen & get length
+CODEIN DATA >0000,CDBUG       R9 and address of CDBUF
+       MOV  R2,@SAVLEN        Save length and check if ZERO
+       JEQ  PRTIN2            If ZERO jump back up to the input
+       LI   R7,CDBUF          Set pointer for temp buffer
+       CI   R9,PRTDT1+24      Check if doing PRINTER NAME
+       JEQ  SAVEPY            Yep, so skip over the HEX OK CHECK
+       CLR  R6                Make sure R6 is >0000 for comoars below
+SAVEPU MOVB *R7+,R6           Get a byte to be check
+       DEC  R2                Check if finished
+       JNC  SAVEPV            Yep, so exit the byte checker
+       CI   R6,>4600          Check if greater than "F"
+       JH   PRTIN2            Yep, so jump back up to the input line
+       CI   R6,>4100          Check if greater than or= "A"
+       JHE  SAVEPU            Yep, this byte is OK, try the next one
+       CI   R6,>3900          Check if greater than "9"
+       JH   PRTIN2            Yep, so jump back up to the input line
+       CI   R6,>3000          Check if greater than or= "0"
+       JHE  SAVEPU            Yep, this byte is OK, try the next one
+       JMP  PRTIN2            BAD BYTE, so bring back up the cursor!
+ 
+SAVEPV MOV  *R8+,@SAVEPW+2    Move code address to ASCHEX data line
+       MOV  @SAVLEN,R2        Get the length of the input
+       SLA  R2,7              Divide it by TWO. (Two bytes per HEX!)
+       BL   @ASCHEX           * Convert ASCII to HEX
+SAVEPW DATA CDBUF,>0000       * then store it in buffer
+       JMP  PRTIN4            Done, get the next printer code
+ 
+SAVEPY C    *R9+,*R9+         Add 4 to pointer for REDO key pressed!
+       LI   R6,PRTCFG         Point to the PRINTER DSR NAME BUFFER
+       MOV  R2,@PRTPAB+8      Save the length into PRINTER DSR PAB
+SAVEPZ MOVB *R7+,*R6+         Move a byte of the name into the PAB
+       DEC  R2                Check if finished
+       JNE  SAVEPZ            Nope, so move some more
+       MOVB R2,*R6+           Done, so add ZERO to the end
+SAVEPX SETO R15               Set PROC'D key flag
+       BLWP @WRTSCR           * Write PROCD on screen
+       DATA MSG               *
+       CLR  @NOCUR            * Hide cursor
+       LI   R0,767            *
+       LI   R2,1              *
+       JMP  PRTIN3            Wait for a PROC'D key!
+ 
+FUNCT0 SETO @NOCUR            Set cursor flag (make it seen)
+       CB   *R3+,R1           Check if REDO
+       JEQ  REDOPT
+       CB   *R3+,R1           Check if PROC'D
+       JEQ  PROCPT
+       CB   *R3+,R1           Check if BEGIN
+       JEQ  BEGNPT
+       CB   *R3+,R1           Check if BACK
+       JEQ  BACKPT
+       CLR  @NOCUR            Hide cursor
+       JMP  PRTIN3
+ 
+REDOPT CLR  R15               Disable PROC'D key
+       CI   R9,PRTDT1         Check if 1st field
+       JEQ  PRTIN2
+       AI   R9,-4             * Move pointer back one field
+       DECT R8                *
+       BLWP @CLEAR            * Remove PROC'D from screen
+       DATA 752,6
+       JMP  PRTIN6
+ 
+BEGNPT BLWP @CLEAR            * Remove PROC'D from screen
+       DATA 752,6
+       JMP  PRTIN5
+ 
+PROCPT MOV  R15,R15
+       JEQ  PRTIN3
+ 
+BACKPT BL   @UPLOW            Back to upper/lower case
+       BL   @CATCLR
+       DATA CDBUF,28
+       B    @MMENU

@@ -1,0 +1,718 @@
+****************************************************************
+* NF-MAIN  v2.00.01/26/91.CC.OPA  PART 1 OF MAIN ASSEMBLY CODE *
+****************************************************************
+*                                                              *
+* Source Published: 04/16/2024 garyopa.com / ti99.atariage.com *
+*                                                              *
+* Copyrighted 1991 by Gary Bowser and Cecil Chin from O.P.A.   *
+*                                                              *
+* Credit Must Be Included When Using Source from RECALLIT 2001 *
+*                                                              *
+****************************************************************
+       LIMI 0                 START OF RECALLIT PROGRAM
+       LWPI WSPACE
+       CLR  @>834A
+       CLR  @>834C
+       SETO @>8350
+       LI   R0,PABADR+64
+       LI   R1,CALLBO
+       LI   R2,2
+       BLWP @VMBW
+       MOV  R0,@>8356
+       BLWP @DSRLNK
+       DATA >A
+       CLR  @MAXREC
+       MOVB @>8350,R0
+       JNE  BO$CRD
+       MOV  @>834A,R5
+       JNE  BO$FND
+       LI   R1,NO$RAM
+       JMP  BO$GO
+BO$CRD LI   R1,NO$BO
+       JMP  BO$GO
+BO$FND MPY  @DEC64,R5
+       CI   R6,4000
+       JLE  BO$OK
+       LI   R6,4000
+BO$OK  MOV  R6,@MAXREC
+       BLWP @NXTNUM
+       DATA MEMFUO,3
+       LI   R1,BO$SIZ
+BO$GO  MOV  R1,@BO$PRT
+       MOV  R1,@WFON+4
+       CLR  R0
+       BLWP @VWTR
+       LI   R0,>01B0
+       BLWP @VWTR
+       LI   R0,>0200
+       BLWP @VWTR
+       LI   R0,>030E
+       BLWP @VWTR
+       LI   R0,>0401
+       BLWP @VWTR
+       LI   R0,>050E
+       BLWP @VWTR
+       LI   R0,>0601
+       BLWP @VWTR
+       LI   R0,>07F4
+       BLWP @VWTR
+       LI   R0,>08F0     * Load new character set
+       LI   R1,CHARA1    *
+       LI   R2,>0490     *
+       BLWP @VMBW        *
+       LI   R0,>0808     Load upper case A-Z
+       LI   R1,NCHR      in CHAR 1-26 space
+       LI   R2,>00D0
+       BLWP @VMBW
+       LI   R0,>08D8     Load slash "/"
+       LI   R1,SLASH     in CHAR 27 space
+       LI   R2,>8
+       BLWP @VMBW
+       LI   R0,>08E0     Load "?" in
+       LI   R1,QSIGN     CHAR 28 space
+       BLWP @VMBW
+       LI   R0,>0380
+       LI   R1,TITCLR
+       LI   R2,32
+       BLWP @VMBW
+       LI   R0,>0700
+       LI   R1,TTSPR2
+       LI   R2,50
+       BLWP @VMBW
+       BLWP @CLEAR
+       DATA 0,768
+       BLWP @WRTSCR
+       DATA TITSCR
+       LI   R0,>E201
+       MOVB R0,@VDPR1
+       SWPB R0
+       BLWP @VWTR
+       LI   R0,GOBIRD
+       MOV  R0,@USRINT
+       CLR  R1
+       CLR  @TIMER
+WFCT   CB   @TIMER,@SPACE
+       JL   WFKP
+       CLR  @TIMER
+       INV  R1
+       JEQ  WFCS
+       BLWP @WRTSCR
+       DATA WFOFF
+       JMP  WFKP
+WFCS   BLWP @WRTSCR
+       DATA WFON
+WFKP   BLWP @KSCAN
+       LIMI 2
+       LIMI 0
+       MOVB @STATUS,R0
+       JEQ  WFCT
+       CLR  @USRINT
+       MOV  @MAXREC,R0
+       JNE  BO$RUN
+       BLWP @>0000
+BO$RUN BLWP @CLEAR
+       DATA 0,768
+       LI   R0,>0380
+       LI   R1,SCRCLR
+       LI   R2,32
+       BLWP @VMBW
+       LI   R0,>0703
+       BLWP @VWTR
+       LI   R0,>0700
+       LI   R1,>D000
+       BLWP @VSBW
+       SETO @SORTAB
+       BL   @SETSRT           Go and set sort field table
+********************
+MMENU  BLWP @CLEAR
+       DATA 0,759
+       BLWP @WRTSCR
+       DATA MENU1
+GETNUM CLR  @NOPRO
+       BL   @INPUT
+       DATA NUMPOS,4
+       LI   R0,751
+       BLWP @VSBR
+       SRL  R1,8         Move no. LSB
+       LI   R2,MAINUM    Set table pointer
+       MOV  *R2+,R3      Move no. of comparisons to R3
+MAINON C    *R2+,R1      Compare
+       JEQ  MAINOP
+       INCT R2           Set pointer to next no.
+       DEC  R3           Deducet one from R3
+       JEQ  GETNUM       Check if at end
+       JMP  MAINON       Not at end
+MAINOP MOV  *R2,R11      Move address to R11
+       RT                Branch to address
+***********************************
+NEWCDE BLWP @CLEAR       Routine for new code
+       DATA 0,759
+       BLWP @WRTSCR
+       DATA CDSCR
+       BLWP @WRTSCR
+       DATA CDPOS0
+       BL   @UPLOW
+       SETO @NOPRO
+       CLR  @ADED
+       CLR  @CDAD
+       BL   @INPUT
+       DATA CDINPT,4
+       LI   R3,CDPOS0+2
+       LI   R2,13
+NEWCDF MOV  *R3+,R0
+       JLT  MMENU
+       MOV  *R3+,R1
+       BLWP @VMBR
+       JMP  NEWCDF
+INPT   BLWP @CLEAR
+       DATA 0,759
+       BLWP @WRTSCR
+       DATA M4H
+       LI   R8,SORTAB    Set sort table pointer
+INPTB  BLWP @WRTSCR
+       DATA AD
+       SETO @ADED
+       SETO @CDAD
+       MOV  @FRESLT,R1
+       JLT  INPTA
+       LI   R2,TABSOR
+       SLA  R1,1
+       S    R1,R2
+       MOV  *R2,@INPREC
+       JMP  INPT1
+INPTA  MOV  @NUMREC,R9   * NUMREC count 1 to......
+       JNE  INPT2
+       SETO *R8
+INPT2  C    @NUMREC,@MAXREC
+       JHE  MXREC
+       MOV  @NUMREC,@INPREC
+INPT1  MOV  @INPREC,@NXTREC
+       BLWP @GETPAG
+       SETO @NOPRO
+       CLR  R14          Disable PROC'D key
+       BL   @INPUT
+       DATA INPOS,4
+       BL   @SAVDAT      Read rec from screen & store -tel #
+       DATA INPOS1,NXTADR
+       BLWP @COM$UM      Compress and store telephone #
+       DATA NXTADR,SCRPT,10
+       LI   R1,INPTE
+       MOV  R1,@DUPRT+2
+       BLWP @SORT        *
+INPTE  BL   @CLRFLD
+       DATA INPOS
+       BLWP @CLEAR
+       DATA 752,6
+       MOV  @FRESLT,@FRESLT
+       JLT  INPTC
+       DEC  @FRESLT
+       JMP  INPTD
+INPTC  INC  @INPREC      * NXTREC count 0 to......
+INPTD  INC  @NUMREC
+       BL   @SRCREC
+       JMP  INPTB
+ 
+************************
+* DISPLAY FULL MESSAGE *
+************************
+MXREC  BLWP @CLEAR
+       DATA 0,759
+       BLWP @WRTSCR
+       DATA MEMFUL
+       BL   @SCAN
+       B    @MMENU   (TEMP)
+EDIT   MOV  @SORTAB,@SORTAB
+       JLT  ED8
+       BLWP @CLEAR
+       DATA 0,759
+       BLWP @WRTSCR
+       DATA MENU11
+       BLWP @WRTSCR
+       DATA MSG
+       SETO R14
+       SETO @CDAD
+       SETO @NOPRO
+       CLR  @ADED
+ED01   BL   @INPUT       Get name to be Edited
+       DATA EDDAT,4
+       BL   @SAVDAT      Read input to CPU buffer
+       DATA EDDAT,EDBUG
+       LI   R8,SORTAB    Set sort table pointer
+       BLWP @CLEAR
+       DATA 0,759
+       BLWP @WRTSCR
+       DATA M4H
+       C    @EDBUF,@HEX20  Look for name or start
+       JEQ  ED6            at beginning
+       BLWP @WRTSCR
+       DATA ED
+ED3    MOV  *R8+,@NXTREC * Get record #
+       JLT  ED5          Check for EOF
+       BLWP @GETPAG      Get page # and address
+       LI   R9,30        Number of BYTES to check
+       LI   R6,EDBUF     Set pointer for input
+       MOV  @NXTADR,R7   Set pointer for record
+ED4    MOVB *R6+,R15     * Move one byte to compare
+       CB   R15,*R7      * Compare byte
+       JNE  ED41         *
+       DEC  R9           *
+       JEQ  ED7          *
+       INC  R7           *
+       JMP  ED4          *
+ED41   XOR  @SPACE,R15   * Change to UPPER/LOWER case
+       CB   R15,*R7+     *
+       JNE  ED3          *
+       DEC  R9           *
+       JEQ  ED7          *
+       JMP  ED4          *
+ED7    BL   @CLRWRT
+       BL   @INSAV
+       DECT R8
+       BL   @EDTAB
+       JMP  EDKEY0
+ED8    BL   @ARYMSG
+       B    @MMENU
+ED5    BLWP @NOSPCE
+       DATA EDBUF,18
+       LI   R0,EDBUF
+       A    @SAVLEN,R0
+       MOV  @SAVLEN,R14
+       BLWP @NOSPCE
+       DATA EDBUF+18,12
+       A    @SAVLEN,R14
+       MOV  @SAVLEN,R1
+       LI   R2,EDBUF+18
+       INC  R14
+       INC  R1
+       MOVB @SPACE,R4
+ED10   MOVB *R2+,R3
+       MOVB R4,*R0+
+       MOVB R3,R4
+       DEC  R1
+       JNE  ED10
+       MOVB R1,*R0
+       MOV  @EDBUG,@MENU5+12
+       BL   @CALSCR
+       JMP  EDIT         *
+ED6    MOV  *R8,@NXTREC
+       BLWP @GETPAG
+       BL   @CLRWRT
+********************************
+EDKEY0 BLWP @WRTSCR
+       DATA EDSCR
+       CLR  @DELAY          * Auto repeat routine
+EDKEY  BLWP @FINDKE
+       DATA KEYS            *
+ 
+BACKUP CI   R8,>2000
+       JEQ  BACKUR
+       DECT R8
+BACKUQ MOV  *R8,@NXTREC
+       BLWP @GETPAG
+       BL   @CLRWRT
+       JMP  EDKEY
+BACKUR BLWP @WRTSCR
+       DATA SFILE
+       JMP  EDKEY
+FORWRD C    @2(R8),@END
+       JEQ  FORWRE
+       INCT R8
+       JMP  BACKUQ
+FORWRE BLWP @WRTSCR
+       DATA EFILE
+       JMP  EDKEY
+EDIT00 BL   @INSAV
+       BL   @EDTAB
+       BLWP @WRTSCR
+       DATA EDSCR
+       JMP  BACKUQ
+DELET  BLWP @CLEAR
+       DATA 0,64
+       BLWP @CLEAR
+       DATA 704,64
+       BLWP @WRTSCR
+       DATA DELSCR
+       CLR  @NOPRO
+       BL   @UPPER
+DELEU  BL   @SCAN
+       MOVB @KEYVAL,R1
+       CB   R1,@YNCHK+1
+       JEQ  DELETH
+       CB   R1,@YNCHK
+       JNE  DELEU
+       BL   @UPLOW
+DELEU1 MOV  R8,R7        Sort table start >2000 to >3FFE
+DELETF MOV  @2(R7),*R7+
+       JLT  DELETG
+       JMP  DELETF
+DELETG DEC  @NUMREC
+       JEQ  RMEN
+       INC  @FRESLT
+       MOV  @FRESLT,R1
+       LI   R2,TABSOR
+       SLA  R1,1
+       S    R1,R2
+       MOV  @NXTREC,*R2
+       C    *R8,@END
+       JNE  DELETI
+       DECT R8
+DELETI BL   @SRCREB
+       JMP  BACKUQ
+DELETH BL   @SRCREB
+       B    @EDKEY
+PRINTF BLWP @WRTSCR        *** PRINT ****
+       DATA SDLAB
+       CLR  @NOPRO
+LAB00  BL   @INPUT
+       DATA SDINP,4
+       MOV  R2,@SDVAL+2
+       JEQ  LAB00
+       BL   @SAVDAT
+       DATA SDINP,CDBUG
+       BL   @ASCBIN
+SDVAL  DATA CDBUF,>0000
+       LI   R0,PABADR
+       LI   R1,PRTPAB
+       LI   R2,30
+       BLWP @VMBW
+       BL   @DSREXE
+       LI   R1,>0300
+       BLWP @VSBW
+       MOV  R6,R5
+       BL   @PRTLAB
+       BLWP @CLEAR
+       DATA 706,28
+       BLWP @CLEAR
+       DATA 757,2
+       LI   R0,PABADR
+       LI   R1,>0100     Close code
+       BLWP @VSBW
+       BL   @DSREXE
+       B    @EDKEY
+RMEN   SETO @FRESLT
+       BL   @SRCREC
+       B    @MMENU
+SRCREB BLWP @CLEAR
+       DATA 757,9
+       BLWP @WRTSCR
+       DATA EDSCR
+SRCREC MOV  @NUMREC,R6
+       BLWP @NXTNUM
+       DATA AMTREC+2,3
+       BLWP @WRTSCR
+       DATA AMTRED
+       RT
+ 
+*******************************
+* Shift sort tab for edit     *
+*******************************
+EDTAB  MOV  R11,@EDTAF+2
+       MOV  R8,R7        Save edit pointer
+EDTAC  MOV  @2(R7),*R7+  Delete edited rec from tab
+       JLT  EDTAD        will be replaced in SORT
+       JMP  EDTAC        routine
+EDTAD  DEC  @NUMREC      -1 from # of records
+       LI   R1,EDTAE
+       MOV  R1,@DUPRT+2
+       CLR  @ADED
+       BLWP @SORT        for accurate sort
+EDTAE  INC  @NUMREC      Add edited rec. to # of records
+EDTAF  B    @>0000
+*******************************
+PRTDAT MOV  @SORTAB,@SORTAB
+       JLT  DISSCT
+       BLWP @CLEAR
+       DATA 0,759
+       BLWP @WRTSCR
+       DATA MENU6
+       BL   @FNDNUM
+       DATA COMNUM       CLIST,PCODE,MMENU
+ 
+HOW    MOV  R11,@CLIST1+2
+       CLR  @PRTFLG
+       BLWP @CLEAR
+       DATA 0,759
+       BLWP @WRTSCR
+       DATA MENU7
+       LI   R8,SORTAB
+       BL   @FNDNUM
+       DATA COMNUN       CLISV,CHKPRT,CLISX
+ 
+DISSCT BL   @ARYMSG
+       B    @MMENU
+CHKPRT SETO @PRTFLG
+       JMP  CLIST1
+CLISV  JMP  CLIST1
+CLISX  INC  @PRTFLG
+       BLWP @WRTSCR
+       DATA LABNUM
+       CLR  @NOPRO
+LAB0   BL   @INPUT
+       DATA LABINP,4
+       MOV  R2,@PASVAL+2
+       JEQ  LAB0
+       BL   @SAVDAT
+       DATA LABINP,EDBUG
+       BL   @ASCBIN
+PASVAL DATA EDBUF,>0000
+       LI   R0,PABADR
+       LI   R1,PRTPAB
+       LI   R2,30
+       BLWP @VMBW
+       BL   @DSREXE
+       LI   R1,>0300     Write code
+       BLWP @VSBW
+CLIST1 B    @>0000
+CLIST  BL   @HOW
+       MOV  @PRTFLG,@PRTFLG
+       JLT  CLISTP
+       JEQ  CLISTS
+ 
+**************************
+* Print Labels           *
+**************************
+       BLWP @CLEAR
+       DATA 0,759
+       BLWP @WRTSCR
+       DATA M3H6
+       LI   R8,SORTAB
+CLISY  MOV  *R8+,@NXTREC
+       JLT  CLISZ
+       BLWP @GETPAG
+       MOV  R6,R5
+       BL   @PRTLAB
+       JMP  CLISY
+CLISZ  LI   R0,PABADR
+       LI   R1,>0100     Close code
+       BLWP @VSBW
+       BL   @DSREXE
+DISRT  B    @MMENU
+CLISTP B    @PRTPTR
+CLISTS LI   R8,SORTAB
+       BLWP @CLEAR
+       DATA 0,759
+       BLWP @WRTSCR
+       DATA M4H
+       BLWP @WRTSCR
+       DATA M3H
+DISSCS MOV  *R8+,@NXTREC
+       JLT  DISRT
+       BLWP @GETPAG
+       BL   @WRTDAT
+       DATA NXTADR,INPOS1
+       BLWP @DENUM
+       DATA NXTADR,SCRPT,5
+       BL   @WRTDAT
+       DATA SCRPU,INPOS2
+       BL   @STOPGO
+       JMP  DISSCS
+ 
+PCODE  BLWP @CLEAR      SECLECT BY CODE ROUTINE
+       DATA 0,759
+       BLWP @WRTSCR
+       DATA SELCD
+       BLWP @WRTSCR
+       DATA CDPOS1
+PCODE1 SETO @NOPRO
+       BL   @INPUT
+       DATA SCODE,4
+       BL   @SAVDAT
+       DATA SCODE,HEADIO+10
+       MOVB R2,@HEAD3(R2)
+       BL   @SAVDAT
+       DATA SCODE,CDBUG
+       BL   @HOW
+       C    @CDBUF,@HEX20
+       JEQ  ZEROX
+       BLWP @NOSPCE
+       DATA CDBUF,4
+       MOV  @SAVLEN,R2
+       CI   R2,1
+       JEQ  ONEX
+       CI   R2,2
+       JEQ  TWOX
+       CI   R2,3
+       JEQ  THREEX
+       CI   R2,4
+       JEQ  FOURX
+       JMP  PCODE1
+ZEROX  BL   @CDSUB
+       DATA ZERO
+ONEX   BL   @CDSUB
+       DATA ONE
+TWOX   BL   @CDSUB
+       DATA TWO
+THREEX BL   @CDSUB
+       DATA THREE
+FOURX  BL   @CDSUB
+       DATA FOUR
+ 
+ZERO   MOV  R11,@ZERORT+2
+ZERO0  BL   @PCOD01
+       C    *R7,@HEX20
+       JNE  ZERO0
+ZERORT B    @>0000
+ 
+ONE    MOV  R11,@ONG+2
+ONE0   BL   @PCOD01
+       LI   R2,4
+ONF    CB   *R7+,@CDBUF
+       JEQ  ONG
+       DEC  R2
+       JNE  ONF
+       JMP  ONE0
+ONG    B    @>0000
+ 
+TWO    MOV  R11,@TWP+2
+TWO0   BL   @PCOD01
+       C    *R7,@CDBUF       0,1
+       JEQ  TWP
+       MOVB *R7,@TSTBUF
+       MOVB @2(R7),@TSTBUF+1
+       C    @CDBUF,@TSTBUF   0,2
+       JEQ  TWP
+       MOVB @3(R7),@TSTBUF+1
+       C    @CDBUF,@TSTBUF   0,3
+       JEQ  TWP
+       MOVB @1(R7),@TSTBUF
+       MOVB @2(R7),@TSTBUF+1
+       C    @CDBUF,@TSTBUF   1,2
+       JEQ  TWP
+       MOVB @3(R7),@TSTBUF+1
+       C    @CDBUF,@TSTBUF   1,3
+       JEQ  TWP
+       C    @2(R7),@CDBUF    2,3
+       JNE  TWO0
+TWP    B    @>0000
+ 
+THREE  MOV  R11,@THRERT+2
+THREE0 BL   @PCOD01
+       MOV  *R7,@TSTBUF
+       MOVB @2(R7),@TSTBUF+2
+       BL   @THRESB          0,1,2
+       MOVB @3(R7),@TSTBUF+2
+       BL   @THRESB          0,1,3
+       MOVB @2(R7),@TSTBUF+1
+       BL   @THRESB          0,2,3
+       MOVB @1(R7),@TSTBUF
+       BL   @THRESB          1,2,3
+       JMP  THREE0
+ 
+FOUR   MOV  R11,@FOURT+2
+FOUR0  BL   @PCOD01
+       LI   R6,CDBUF
+       C    *R7+,*R6+        0,1
+       JNE  FOUR0
+       C    *R7,*R6          2,3
+       JNE  FOUR0
+FOURT  B    @>0000
+CDSUB2 BL   @CMPSCH          BL is only to move DATA
+CDSUB3 DATA >0000,PCOD03
+CDSUB  MOV  *R11+,@CDSUB1+2
+CDSUB1 LI   R2,>0000
+       MOV  @PRTFLG,@PRTFLG
+       JLT  CD$1
+       JEQ  CD00
+       BLWP @CLEAR
+       DATA 0,759
+       BLWP @WRTSCR
+       DATA M3H6
+       MOV  R2,@CD01S+2
+       LI   R2,CD01T
+       MOV  R2,@PCOD03+2      Put adr in PCOD01 to ret here
+CD01S  BL   @>0000
+       MOV  R6,R5
+       BL   @PRTLAB
+       JMP  CD01S
+CD01T  B    @CLISZ
+CD$1   MOV  R2,@CD$1S+2
+       MOV  R2,@CDSUB3
+       LI   R2,CD$3
+       MOV  R2,@PCOD03+2
+       BL   @COMSUB
+       BL   @MODSUB
+       MOV  @COLFLG,R0
+       JLT  CDSUB2
+       BL   @PRTSUB
+       DATA 40,80
+       BL   @PUTHED
+       BL   @SETCNT
+CD$1S  BL   @>0000
+       BL   @PRTSUR
+       CI   R10,56
+       JEQ  CD$2
+       BL   @PRTDEL
+       JMP  CD$1S
+CD$2   MOV  *R8,R0
+       JLT  CD$3
+       BL   @PRTDL1
+       BL   @PUTHED
+       LI   R10,2
+       JMP  CD$1S
+CD$3   B    @PRTPTW
+CD00   MOV  R2,@CD00S+2
+       LI   R2,CD00T
+       MOV  R2,@PCOD03+2
+       BL   @PCODE2
+CD00S  BL   @>0000
+       BL   @CLRFLD
+       DATA INPOS
+       BL   @WRTDAT
+       DATA NXTADR,INPOS1
+       BLWP @DENUM
+       DATA NXTADR,SCRPT,5
+       BL   @WRTDAT
+       DATA SCRPU,INPOS2
+       BL   @STOPGO
+       JMP  CD00S
+CD00T  BLWP @WRTSCR
+       DATA EFILE
+       BL   @SCAN
+       B    @MMENU
+ENDPRG BLWP @CLEAR
+       DATA 0,759
+       BLWP @WRTSCR
+       DATA MENU8
+       CLR  @NOPRO
+       BL   @FNDNUM
+       DATA COMNUO
+ENDPRH SETO @>834C
+       LI   R0,PABADR+64
+       LI   R1,CALLBO
+       LI   R2,2
+       BLWP @VMBW
+       MOV  R0,@>8356
+       BLWP @DSRLNK
+       DATA >A
+       MOV  @>8350,R0
+       JNE  ENDERR
+       BLWP @>0000
+ENDERR B    @MMENU
+ 
+**********************************
+* Sub program to find number     *
+* pressed                        *
+**********************************
+FNDNUM MOV  *R11,@FNDNUO+2
+       CLR  @NOPRO
+FNDNUN BL   @INPUT
+       DATA NUMPOS,4
+       LI   R0,751
+       BLWP @VSBR
+       SRL  R1,8
+FNDNUO LI   R2,>0000
+       MOV  *R2+,R3
+FNDNUP C    *R2+,R1
+       JEQ  FNDNUQ
+       INCT R2
+       DEC  R3
+       JEQ  FNDNUN
+       JMP  FNDNUP
+FNDNUQ MOV  *R2,R11
+       RT
+UPPER  LI   R0,>0300
+       MOVB R0,@KEYADR
+       RT
+UPLOW  LI   R0,>0500
+       MOVB R0,@KEYADR
+       RT

@@ -1,0 +1,731 @@
+****************************************************************
+* NF-BLWP  v2.00.01/26/91.CC.OPA VIDEO AND DSR ROUTINES BLWP's *
+****************************************************************
+*                                                              *
+* Source Published: 04/16/2024 garyopa.com / ti99.atariage.com *
+*                                                              *
+* Copyrighted 1991 by Gary Bowser and Cecil Chin from O.P.A.   *
+*                                                              *
+* Credit Must Be Included When Using Source from RECALLIT 2001 *
+*                                                              *
+****************************************************************
+ 
+****************************  DATA PASSED= ADR OF DATA TABLE          w
+* WRTSCR = WRiTe to SCReen *  DATA TABLE = SOUND  (0 IF NO SOUND)     w
+****************************               VDP RAM ADDRESS (SCREEN)   w
+WRTSCR DATA UTILWS,WTSCR1                  CPU RAM ADDRESS (TEXT)     w
+WTSCR1 MOV  *R14+,R9                       Repeat above two until >FFFF
+       MOV  *R9+,R8                        Write TEXT until BYTE 0
+WTSCR2 MOV  *R9+,R0
+       JLT  WTSCR4
+       BL   @VDPSTW
+       MOV  *R9+,R1
+WTSCR3 MOVB *R1+,R0
+       JEQ  WTSCR2
+       MOVB R0,@VDPWD
+       JMP  WTSCR3
+WTSCR4 MOV  R8,@WTSCR5
+       JEQ  WTSCR7
+       BLWP @GPLLNK
+WTSCR5 DATA >0000
+       LIMI 2
+WTSCR6 MOVB @SNDNUM,R0
+       JNE  WTSCR6
+       LIMI 0
+WTSCR7 RTWP
+ 
+********************************* DATA PASSED= STARTING SCREEN POS    w
+* CLEAR = CLEAR part of screen  *              LENGTH TO CLEAR        w
+*********************************
+CLEAR  DATA UTILWS,CLEAR1
+CLEAR1 MOV  *R14+,R0
+       BL   @VDPSTW
+       LI   R1,>2000
+       MOV  *R14+,R2
+CLEAR2 MOVB R1,@VDPWD
+       DEC  R2
+       JNE  CLEAR2
+       RTWP
+ 
+********************************* REGS PASSED= R0 VDP RAM ADDRESS
+* VSBR = Video Single Byte Read *              R1 MSByte = DATA BYTE
+*********************************
+VSBR   DATA UTILWS,VSBR1
+VSBR1  BL   @VDPSRA
+       MOVB @VDPRD,@2(R13)
+       RTWP
+ 
+********************************* REGS PASSED= R0 VDP RAM ADDRESS
+* VSBW = Video Single Byte Write*              R1 MSByte = DATA BYTE
+*********************************
+VSBW   DATA UTILWS,VSBW1
+VSBW1  BL   @VDPSWA
+       MOVB R1,@VDPWD
+       RTWP
+ 
+********************************* REGS PASSED= R0 VDP RAM ADDRESS
+* VMBR = Video Multi Byte Read  *              R1 CPU RAM ADDRESS
+*********************************              R2 LENGTH OF READ
+VMBR   DATA UTILWS,VMBR1
+VMBR1  BL   @VDPSRA
+VMBR2  MOVB @VDPRD,*R1+
+       DEC  R2
+       JNE  VMBR2
+       RTWP
+ 
+********************************* REGS PASSED= R0 VDP RAM ADDRESS
+* VMBW = Video Multi Byte Write *              R1 CPU RAM ADDRESS
+*********************************              R2 LENGTH OF WRITE
+VMBW   DATA UTILWS,VMBW1
+VMBW1  BL   @VDPSWA
+VMBW2  MOVB *R1+,@VDPWD
+       DEC  R2
+       JNE  VMBW2
+       RTWP
+ 
+********************************* REGS PASSED= R0 MSByte = VDP REG #
+* VWTR = Video Write to Register*                 LSByte = DATA BYTE
+*********************************
+VWTR   DATA UTILWS,VWTR1
+VWTR1  BL   @VDPSWR
+       RTWP
+ 
+VDPSWR MOV  *R13,R0               USE BY ALL THE ABOVE VIDEO BLWP's
+       ORI  R0,>8000
+       JMP  VDPGO
+VDPSWA MOV  *R13,R0
+VDPSTW ORI  R0,>4000
+       JMP  VDPGO
+VDPSRA MOV  *R13,R0
+VDPGO  MOVB @UTILWS+1,@VDPWA
+       MOVB R0,@VDPWA
+       MOV  @2(R13),R1
+       MOV  @4(R13),R2
+       RT
+ 
+******************************* ENTRY WITH A BL, NO DATA/REGS PASSED
+* SCAN = Wait for a Key press *
+*******************************
+SCAN   CLR  @STATUS
+SCAN1  BLWP @KSCAN
+       MOVB @STATUS,@STATUS
+       JEQ  SCAN1
+       RT
+*************************       ENTRY WITH A BLWP, NO DATA/REGS PASSED
+* KSCAN = Keyboard SCAN *
+*************************
+KSCAN  DATA UTILWS,KSCAN1
+KSCAN1 BL   @CSCAN
+       RTWP
+ 
+CSCAN  LWPI GPLWS               USE BY ALL THE ABOVE KEY BLWP's
+       MOV  R11,@CSCAN1+2       NOTE: Can be used by itself to scan
+       BL   @>000E              keyboard where a BL is wanted instead of
+CSCAN1 LI   R11,>0000           the normal BLWP.
+       LWPI UTILWS
+       RT
+***************************     DATA PASSED= Offset into DSR header
+* NORMAL OPA DSRLNK v1.10 *
+***************************
+*POINTR EQU  >8356
+*SP$ROM EQU  >83D0
+*DSRNAM EQU  >8354
+*GPLWS  EQU  >83E0
+*SPACE  DATA >2000
+*SAVE1  DATA >0
+*SAVE2  DATA >0
+*SAVE3  DATA >0
+*HEXAA  BYTE >AA
+*PERIOD TEXT '.'
+*NAMBUF BSS  >A
+*DSRWS  BSS  >20
+*********************************
+DSRLNK DATA DSRWS,DSR1
+DSR1   MOV  *R14+,R5
+       SZCB @SPACE,R15
+       MOV  @POINTR,R0
+       MOV  R0,R9
+       AI   R9,-8
+       BLWP @VSBR
+       MOVB R1,R3
+       SRL  R3,8
+       SETO R4
+       LI   R2,NAMBUF
+DLOOP1 INC  R0
+       INC  R4
+       C    R4,R3
+       JEQ  DJUMP1
+       BLWP @VSBR
+       MOVB R1,*R2+
+       CB   R1,@PERIOD
+       JNE  DLOOP1
+DJUMP1 MOV  R4,R4
+       JEQ  DJUMP6
+       CI   R4,7
+       JGT  DJUMP6
+       CLR  @SP$ROM
+       MOV  R4,@DSRNAM
+       INC  R4
+       A    R4,@POINTR
+       LWPI GPLWS
+       CLR  R1
+       LI   R12,>1200
+       JMP  DJMP2A
+DLOOP2 MOV  R12,R12
+       JEQ  DJUMP2
+       SBZ  0
+DJUMP2 AI   R12,>100
+       CLR  @SP$ROM
+       CI   R12,>1200
+       JEQ  DJUMP5
+       CI   R12,>2000
+       JNE  DJMP2A
+       LI   R12,>1000
+DJMP2A MOV  R12,@SP$ROM
+       SBO  0
+       LI   R2,>4000
+       CB   *R2,@HEXAA
+       JNE  DLOOP2
+       A    @5*2+DSRWS,R2
+       JMP  DJUMP3
+DLOOP3 MOV  @SP$ROM+2,R2
+       SBO  0
+DJUMP3 MOV  *R2,R2
+       JEQ  DLOOP2
+       MOV  R2,@SP$ROM+2
+       INCT R2
+       MOV  *R2+,R9
+       MOVB @DSRNAM+1,R5
+       JEQ  DJUMP4
+       CB   R5,*R2+
+       JNE  DLOOP3
+       SRL  R5,8
+       LI   R6,NAMBUF
+DLOOP4 CB   *R6+,*R2+
+       JNE  DLOOP3
+       DEC  R5
+       JNE  DLOOP4
+DJUMP4 INC  R1
+       MOV  @POINTR,@SAVE1
+       MOV  R9,@SAVE2
+       MOV  R12,@SAVE3
+       BL   *R9
+       JMP  DLOOP3
+       SBZ  0
+       LWPI DSRWS
+       MOV  R9,R0
+       BLWP @VSBR
+       SRL  R1,13
+       JNE  DJUMP7
+       RTWP
+DJUMP5 LWPI DSRWS
+DJUMP6 CLR  R1
+DJUMP7 SWPB R1
+       MOVB R1,*R13
+       SOCB @SPACE,R15
+       RTWP
+ 
+**************************
+*CALC/SET PAGE# FROM REC#*  INPUT  FROM "NXTREC"
+*CALC MEMORY OFFSET      *  OUTPUT TO   "NXTADR"
+**************************
+GETPAG DATA SUBREG,GETPAH
+GETPAH CLR  R3
+       MOV  @NXTREC,R4
+       AI   R4,64
+       DIV  @DEC64,R3
+       MPY  @DEC128,R4
+       AI   R5,>6000
+       MOV  R3,@>834C
+       LI   R0,PABADR+64
+       LI   R1,CALLBO
+       LI   R2,2
+       BLWP @VMBW
+       MOV  R0,@>8356
+       BLWP @DSRLNK
+       DATA >A
+       MOV  @>8350,R0
+       JNE  PAGERR
+       MOV  R5,@NXTADR
+       RTWP
+PAGERR LWPI WSPACE
+       LI   R0,PABADR
+       LI   R1,>0100
+       BLWP @VSBW
+       BL   @DSREXE
+       BLWP @CLEAR
+       DATA 0,759
+       BLWP @WRTSCR
+       DATA NOPAG
+       BL   @SRCREC
+       BL   @SCAN
+       B    @MMENU
+**********************************
+* Convert HEX to ASCII           *
+* Move no. to R6                 *
+* BLWP @NXTNUM :DATA BUFFER,LEN  *
+**********************************
+NXTNUM DATA UTILWS,NXTNM1
+NXTNM1 MOV  *R14,@NXTNUO+2
+       MOV  *R14+,@NXTNUQ+2
+       MOV  *R14+,R8
+       MOV  @12(R13),R6
+       LI   R1,>2000
+NXTNUP CLR  R5
+       DIV  @HEXA,R5     Divide by 10
+       A    @HEX30,R6    Add 30 to remainder
+       SLA  R6,8         Shift to MSB
+NXTNUO MOVB R6,@>0000(R8)  Move to display buffer
+       DEC  R8           * Check if at end
+       JNC  NXTRT        *
+       MOV  R5,R6        *
+       JEQ  NXTNUQ
+       JMP  NXTNUP       No ? do more
+NXTNUQ MOVB R1,@>0000(R8)
+       DEC  R8
+       JNC  NXTRT
+       JMP  NXTNUQ
+NXTRT  RTWP
+ 
+***** PARAMETERS *****
+*
+*     "BLWP @CURSOR"
+* R0- Screen address
+* R1- Clear
+* R2- Maximum number of characters
+*     to Accept
+* R3- Address of a Table which will
+*     contain a list of characters
+*     that the calling program will
+*     recognize as valid Control/Function
+*     codes. These must be outside
+*     32-127, with the exception of
+*     "LEFT,RIGHT,ERASE,DELETE,INSERT"
+* R4- Number of valid codes contained
+*     in the Table specified in R3
+* R5-R15...don't care
+*
+***** UPON RETURN *****
+*
+* R0- Unchanged
+* R1- Zero, or Function-Control code
+*     in MSB
+* R2- Actual number of character Accepted
+* R3-R15...unchanged
+*
+*******************************************
+ 
+* STATUS EQU  >837C
+* KEYADR EQU  >8374
+* KEYVAL EQU  >8375
+* TIMER  EQU  >8379
+DELAY  DATA >0000
+HFE    DATA >00FE
+H1E    DATA >001E
+CURVAL BYTE >1E
+ENTV   BYTE >0D
+LEFTV  BYTE >08
+RITEV  BYTE >09
+DELV   BYTE >03
+INSV   BYTE >04
+ERASV  BYTE >07
+ASCL   BYTE >20
+ASCH   BYTE >7E
+HFF    BYTE >FF
+H0E    BYTE >0E
+       EVEN
+SUBREG BSS  >20
+TEMP   BSS  40
+CURSOR DATA SUBREG,CUR1
+CUR1   MOV  @4(R13),R8
+       DEC  R8
+       MOV  @0(R13),R0
+       CLR  R6
+       CLR  R7
+       BL   @CUR2
+DETECT CB   @KEYVAL,@ENTV
+       JEQ  ENTER
+       CB   @KEYVAL,@LEFTV
+       JEQ  LEFT
+       CB   @KEYVAL,@RITEV
+       JEQ  RIGHT
+       CB   @KEYVAL,@DELV
+       JNE  CB1
+       B    @DELETE
+CB1    CB   @KEYVAL,@INSV
+       JEQ  INSERT
+       CB   @KEYVAL,@ERASV
+       JNE  CB2
+       B    @ERASE
+CB2    CB   @KEYVAL,@ASCL
+       JLT  DET1
+       CB   @KEYVAL,@ASCH
+       JGT  DET1
+       B    @STRING
+DET1   MOV  @6(R13),R10
+       MOV  @8(R13),R11
+       MOV  R11,R11
+       JNE  DET4
+       BL   @CUR3
+       JMP  DETECT
+DET4   CLR  R9
+DET3   CB   *R10+,@KEYVAL
+       JEQ  DET2
+       INC  R9
+       C    R9,R11
+       JNE  DET3
+       BL   @CUR3
+       JMP  DETECT
+DET2   MOV  @NOCUR,@NOCUR
+       JNE  DETNC
+       LI   R3,>2000
+DETNC  MOV  R3,R1
+       BLWP @VSBW
+       MOVB @KEYVAL,@2(R13)
+       RTWP
+ENTER  MOV  @NOCUR,@NOCUR
+       JNE  ENTEC
+       LI   R3,>2000
+ENTEC  MOV  R3,R1
+       BLWP @VSBW
+       CLR  @2(R13)
+       MOV  R7,@4(R13)
+       RTWP
+LEFT   MOV  R3,R1
+       BLWP @VSBW
+       MOV  R6,R6
+       JNE  LE1
+       BL   @CUR2
+       JMP  DETECT
+LE1    DEC  R0
+       DEC  R6
+       BL   @CUR2
+       JMP  DETECT
+RIGHT  MOV  R3,R1
+       BLWP @VSBW
+       C    R6,R8
+       JNE  RI1
+       BL   @CUR2
+       JMP  DETECT
+RI1    INC  R0
+       INC  R6
+       C    R6,R7
+       JGT  RI2
+       BL   @CUR2
+       JMP  DETECT
+RI2    INC  R7
+       B    @CUR2
+STRING MOV  @NOCUR,@NOCUR
+       JNE  STR0
+       LI   R1,>2000
+       JMP  STR1
+STR0   MOVB @KEYVAL,R1
+STR1   MOV  R1,R3
+       BLWP @VSBW
+       C    R6,R8
+       JNE  ST1
+       C    R6,R7
+       JNE  ST3
+       INC  R7
+ST3    B    @ENTER
+ST1    INC  R0
+       INC  R6
+       C    R6,R7
+       JGT  ST2
+       BL   @CUR2
+       B    @DETECT
+ST2    INC  R7
+       BL   @CUR2
+       B    @DETECT
+INSERT C    R6,R8        CHECK TO SEE IF FIELD IS ALREADY FULL
+       JNE  IN1
+       BL   @CUR2        IF FULL GOTO CUR2
+       B    @DETECT
+IN1    MOV  R3,R1        *REMOVE CURSOR FROM SCREEN
+       BLWP @VSBW        *
+       MOV  R8,R12       MAKE A COPY OF MAX CHAR COUNT
+       S    R6,R12       SUBTRACT ACCUM. FROM MAX, AND PUT DIFF IN R12
+       MOV  R12,R2       PUT SPACE LEFT TO END OF FIELD IN R2
+       LI   R1,TEMP      TEMP IS WHERE TEMP$ IS STORED
+       BLWP @VMBR        MAKE A COPY OF STRING FROM CURSOR TO END OF FIELD
+       BL   @CUR2
+IN2    CB   @KEYVAL,@ASCL  WAS STR3
+       JHE  IN3
+       B    @DETECT
+IN3    CB   @KEYVAL,@ASCH
+       JLE  IN4
+       B    @DETECT
+IN4    INC  R0           INC SCREEN ADDRESS
+       LI   R1,TEMP
+       BLWP @VMBW
+       INC  R6
+       C    R7,R8
+       JEQ  IN5
+       INC  R7
+IN5    MOVB @KEYVAL,R1
+       DEC  R0           BACK UP ONE SPACE
+       BLWP @VSBW        PUT NEW CHAR IN PLACE
+       INC  R0           INC SCREEN ADDRESS
+       BLWP @VSBR
+       MOV  R1,R3
+       JMP  INSERT
+ERASE  CLR  R6
+       CLR  R7
+       MOV  @0(R13),R0
+       LI   R1,>2000
+       CLR  R9
+ERAS1  BLWP @VSBW
+       INC  R9
+       INC  R0
+       C    R9,R8
+       JLE  ERAS1
+       MOV  @0(R13),R0
+       BL   @CUR2
+       B    @DETECT
+DELETE MOV  R3,R1        REMOVE CURSOR
+       BLWP @VSBW
+       MOV  R8,R12       * CALCULATE # OF CHARS FROM CURSOR TO E.O.FIELD
+       S    R6,R12       *
+       JEQ  DEL2
+       INC  R0           ADD ONE TO ADDRESS
+       LI   R1,TEMP
+       MOV  R12,R2
+       BLWP @VMBR
+       DEC  R0
+       BLWP @VMBW
+       A    R12,R0       ADD R12 TO ADDRESS TO POINT TO LAST CHAR IN FIELD
+DEL2   LI   R1,>2000
+       BLWP @VSBW        WRITES A BLANK
+       S    R12,R0       PUTS ADDRESS BACK THE WAY IT WAS
+       MOV  R12,R12
+       JNE  DEL3
+       BL   @CUR2
+       B    @DETECT
+DEL3   MOV  R0,R12
+       S    *R13,R12
+       C    R12,R6
+       JEQ  DEL4
+       DEC  R7
+       C    R7,R6
+       JLT  DEL1
+DEL4   BL   @CUR2
+       B    @DETECT
+DEL1   DEC  R6
+       BL   @CUR2
+       B    @DETECT
+CUR2   MOV  @NOCUR,@NOCUR
+       JNE  NOCUR1
+       LI   R1,>2000
+       JMP  NOCUR0
+NOCUR1 LI   R1,>1E
+       BLWP @VSBR        READ CHAR ALREADY ON SCREEN
+       MOV  R1,R3        STORE IT IN R3
+CUR3   SWPB R1           PERFORMS A SWAP
+       BLWP @VSBW
+       CLR  R9           CLEAR BLINKING TIMER
+       CLR  @TIMER       CLEAR AUTO REPEAR TIMER
+CUR4   LIMI 2
+       LIMI 0
+NOCUR0 BLWP @KSCAN
+       MOVB @STATUS,@STATUS
+       JNE  RET
+       MOV  @NOCUR,@NOCUR
+       JEQ  NOCUR0
+       INC  @DELAY
+       CB   @KEYVAL,@HFF
+       JEQ  CUR5
+       C    @DELAY,@HFE
+       JLE  CUR4
+       S    @H1E,@DELAY
+       B    @DETECT
+CUR5   CB   @TIMER,@H0E
+       JLT  CUR4
+       CLR  @DELAY
+       JMP  CUR3
+RET    CLR  @DELAY
+       RT
+******************************
+* Highlite line to length of *
+* input                      *
+******************************
+CURSUB DATA >8300,CURSUC
+CURSUC MOV  *R13,R0
+       MOV  @4(R13),R2
+       MOV  @6(R13),R3
+       MOV  @8(R13),R4
+       AI   R0,32
+       LI   R1,>8000
+       MOV  R2,R6
+CURSUD BLWP @VSBW
+       INC  R0
+       DEC  R2
+       JNE  CURSUD
+       MOV  *R13,R0
+       CLR  R1
+       MOV  R6,R2
+       BLWP @CURSOR
+       MOV  R1,@2(R13)
+       MOV  R2,@4(R13)
+       AI   R0,32
+       LI   R1,LINE
+       MOV  R6,R2
+       BLWP @VMBW
+       RTWP
+***************************
+* NORMAL OPA GPLLNK V1.00 *
+***************************
+GR4    EQU  GPLWS+8           GPL workspace R4
+GR6    EQU  GPLWS+12          GPL workspace R6
+STKPNT EQU  >8373             GPL Stack pointer
+LDGADD EQU  >60               Load & Execute GROM address entry point
+XTAB27 EQU  >200E             Low Mem XML table location 27
+GETSTK EQU  >166C
+GPLLNK DATA GLNKWS R7         Set up BLWP vectors
+       DATA GLINK1 R8
+RTNAD  DATA XMLRTN R9         Address where GPL XML returns to us
+GXMLAD DATA >176C  R10        GROM Address for GPL XML (0F 27 Opcode)
+       DATA >50    R11        Initialized to >50 where PURSTK address is
+GLNKWS EQU  $->18             GPLLNK's workspace of which only
+       BSS  >08    R12-R15    registers R7 through r15 are used
+GLINK1 MOV  *R11,@GR4         Put PURSTK Address into R4 of GPL WS
+       MOV  *R14+,@GR6        Put GPL Routine Address in R6 of GPL WS
+       MOV  @XTAB27,R12       Save the value at >200E
+       MOV  R9,@XTAB27        Put XMLRTN Address into >200E
+       CLR  @STATUS         * CLEAR GPL STATUS
+       LWPI GPLWS             Load GPL WS
+       BL   *R4               Save current Grom Address on stack
+       MOV  @GXMLAD,@>8302(R4) Push GPL XML A dd on stack for GPL RTurn
+       INCT @STKPNT           Adjust the stack pointer
+       B    @LDGADD           Execute our GPL Routine
+XMLRTN MOV  @GETSTK,R4        Get GETSTK pointer
+       BL   *R4               Restore GROM address off the stack
+       LWPI GLNKWS            Load our WS
+       MOV  R12,@XTAB27       Restore >200E
+       RTWP                   All Done - Return to Caller
+**********************************
+* XMLLNK routine to convert      *
+* floating point to interger     *
+* BLWP @XMLLNK :DATA CFI         *
+**********************************
+XMLLNK DATA UTILWS,XMLENT
+XMLENT LIMI 0                 Disable interrupt
+       MOV  *R14+,@GPLWS+2    Get data & put it in GPLWS R1
+       LWPI GPLWS             Swtich to GPLWS
+       MOV  R11,@UTILWS+22    Save GPL return address
+       MOV  R1,R2             Copy data
+       CI   R1,>8000          Check if direct address
+       JH   XML1              Jump if yes
+       SRL  R1,12             * Calculate table address
+       SLA  R1,1              *
+       SLA  R2,4              *
+       SRL  R2,11             *
+       A    @XMLTAB(R1),R2    *
+       MOV  *R2,R2            Put address in R2
+XML1   BL   *R2               Execute routine
+       LWPI UTILWS            Return to UTILWS
+       MOV  R11,@GPLWS+22     Restore return address
+       RTWP                   RETURN
+************************************
+* Auto repeat and find key routine *
+* BLWP @FINDKE :DATA Key table adr *
+************************************
+FINDKE DATA UTILWS,FINDK1
+FINDK1 MOV  *R14,@FINDK2+2
+       BL   @UPPER
+FINDKF BL   @CSCAN          *
+       MOVB @STATUS,@STATUS *
+       JNE  FINDKH          *
+       INC  @DELAY          *
+       CB   @KEYVAL,@HFF    *
+       JEQ  FINDKF          *
+       C    @DELAY,@HFE     *
+       JLE  FINDKF          *
+       S    @H1E,@DELAY    *
+       JMP  FINDKI          *
+FINDKH CLR  @DELAY          *
+FINDKI MOVB @KEYVAL,R12
+       SRL  R12,8
+FINDK2 LI   R9,>0000
+       MOV  *R9+,R10
+FINDKJ C    *R9+,R12
+       JEQ  KEYYES
+       INCT R9
+       DEC  R10
+       JEQ  FINDKF
+       JMP  FINDKJ
+KEYYES BL   @UPLOW
+       MOV  *R9,R14
+       RTWP
+FINDKG LI   R1,FILBUF
+       MOV  R1,@DRVGET
+       B    @MMENU
+****************************************
+* Compress numbers using four bits     *
+* to store each number.                *
+* Parameters: Table containing address *
+*             of compress buffer       *
+*             Address of no.  buffer   *
+*             Length (amount of num.)  *
+****************************************
+COM$UM DATA >8300,COM$UN
+COM$UN MOV  *R14+,R3     Get table address
+       MOV  *R14+,R1     Get adress containing no.
+       MOV  *R14+,R2     Get length
+       MOV  *R3,R3       Get address from table
+       AI   R3,123       Move pointer to numbers
+       CLR  R0
+COM$UO BL   @COM$UR
+       CLR  R4
+       SLA  R0,4         One no in 1st 4 bits
+       AB   R0,R4        store 1st 4 bits
+       BL   @COM$UR
+       AB   R0,R4        store 2nd 4 bits
+       MOVB R4,*R3+
+       JMP  COM$UO
+COM$UR MOVB *R1+,R0      Get a byte
+       DEC  R2
+       JNC  COM$US       return if at end
+       CI   R0,>2000     Is it a space
+       JNE  COM$UT
+       LI   R0,>0A00     If a space store 10 (>A)
+       JMP  COM$UP
+COM$UT AI   R0,->3000    Make ASCII a number
+COM$UP RT
+COM$US RTWP
+****************************************
+* Decomperss numbers from 4 bits       *
+* to ASACII                            *
+* Parameters: Table containing address *
+*             of compress buffer       *
+*             Address of no.  buffer   *
+*             Length (no of bytes used)*
+****************************************
+DENUM  DATA >8300,DENUN
+DENUN  MOV  *R14+,R3     Get table address
+       MOV  *R14+,R1     Get adress containing no.
+       MOV  *R14+,R2     Get length
+       MOV  *R3,R3       Get address from table
+       AI   R3,123       Move pointer to numbers
+       LI   R4,>0A00
+       CLR  R0
+DENUO  MOVB *R3,R0
+       DEC  R2
+       JNC  DENUS
+       SRL  R0,4
+       CB   R0,R4
+       JNE  DENUT
+       LI   R0,>2000
+       JMP  DENUP
+DENUT  AI   R0,>3000
+DENUP  MOVB R0,*R1+
+       MOVB *R3+,R0
+       SLA  R0,4
+       SRL  R0,4
+       CB   R0,R4
+       JNE  DENUQ
+       LI   R0,>2000
+       JMP  DENUR
+DENUQ  AI   R0,>3000
+DENUR  MOVB R0,*R1+
+       JMP  DENUO
+DENUS  RTWP

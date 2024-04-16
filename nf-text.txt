@@ -1,0 +1,415 @@
+****************************************************************
+* NF-TEXT  v2.00.01/26/91.CC.OPA  TEXT lines for menus/printer *
+****************************************************************
+*                                                              *
+* Source Published: 04/16/2024 garyopa.com / ti99.atariage.com *
+*                                                              *
+* Copyrighted 1991 by Gary Bowser and Cecil Chin from O.P.A.   *
+*                                                              *
+* Credit Must Be Included When Using Source from RECALLIT 2001 *
+*                                                              *
+****************************************************************
+LINE   TEXT '____________________________'
+       BYTE 0
+SCH1   TEXT 'SEARCHING : '
+       BYTE 0
+SCH2   TEXT 'press '
+       BYTE 1,14,25,32,11,5,25
+       TEXT ' to go on'
+       BYTE 0
+SCH3   BYTE 5
+       TEXT 'dit, '
+       BYTE 2,1,3,11
+       TEXT ' for menu'
+       BYTE 0
+EDSCR1 TEXT ' D=delete  N=next  P=print  '
+       BYTE 0
+EDSCR2 TEXT ' E=edit    B=back  M=menu   '
+       BYTE 0
+EDSCR3 TEXT '                            '
+       BYTE 0
+EDSCR4 TEXT 'select: D,E,N,B,P,M '
+       BYTE 0
+M2H1   TEXT '** RECALLIT INPUT SCREEN ** '
+       BYTE 0
+M2H2   TEXT 'REDO/BEGN/BACK'
+       BYTE 0
+M3H1   TEXT 'LISTING NAMES AND ADDRESSES '
+       BYTE 0
+M3H2   TEXT 'press any key to'
+       BYTE 0
+M3H3   TEXT 'press '
+       BYTE 2,1,3,11
+       TEXT ' for menu'
+       BYTE 0
+M3H4   TEXT '** PRINTING **'       393
+       BYTE 0
+M3H4A  TEXT '** PRINTING LABELS **'  389
+       BYTE 0
+MEN100 TEXT '** PHOENIX 2001 RECALLIT ** '
+       BYTE 0
+MEN101 TEXT 'MAIN MENU '
+       BYTE 0
+MEN102 TEXT '1......Selection codes'
+       BYTE 0
+MEN103 TEXT '2............Load data'
+       BYTE 0
+MEN104 TEXT '3.............Add data'
+       BYTE 0
+MEN105 TEXT '4............Edit data'
+       BYTE 0
+MEN106 TEXT '5.......Search routine'
+       BYTE 0
+MEN107 TEXT '6...........Print list'
+       BYTE 0
+MEN108 TEXT '7............Save list'
+       BYTE 0
+MEN109 TEXT '8........Printer codes'
+       BYTE 0
+MEN110 TEXT '9....Change sort field'
+       BYTE 0
+MEN111 TEXT '0..........End program'
+       BYTE 0
+MENU20 TEXT 'LAST  NAME              CODE'
+       BYTE 0
+MENU21 TEXT 'FIRST NAME            TITLE'
+       BYTE 0
+MENU22 TEXT 'STREET ADDRESS'
+       BYTE 0
+MENU23 TEXT 'CITY              PROV/STATE'
+       BYTE 0
+MENU24 TEXT 'POSTAL/ZIP      TELEPHONE # '
+       BYTE 0
+MENU25 TEXT '-   -'
+       BYTE 0
+MENU26 TEXT 'REMARKS '
+       BYTE 0
+MENU50 TEXT ' CANNOT BE FOUND, SO SORRY! '
+       BYTE 0
+MENU61 TEXT '1..PRINT COMPLETE LIST'
+       BYTE 0
+MENU62 TEXT '2.......SELECT BY CODE'
+       BYTE 0
+MENU63 TEXT '3..RETURN TO MAIN MENU'
+       BYTE 0
+MENU64 TEXT 'YOUR CHOICE? 1'
+       BYTE 0
+MENU70 TEXT 'INPUT '
+       BYTE 0
+MENU71 TEXT '1...PRINT LIST TO SCREEN'
+       BYTE 0
+MENU72 TEXT '2..PRINT LIST ON PRINTER'
+       BYTE 0
+MENU73 TEXT '3...PRINT LIST ON LABELS'
+       BYTE 0
+MENU80 TEXT 'IF YOU END PROGRAM YOU'
+       BYTE 0
+MENU81 TEXT 'LOSE ALL DATA '
+       BYTE 0
+MENU83 TEXT '1....TO SAVE DATA '
+       BYTE 0
+MENU84 TEXT '2..TO END PROGRAM '
+       BYTE 0
+MEN0   TEXT '** EDITING DATA INPUT **'
+       BYTE 0
+MEN1   TEXT 'LAST  NAME'
+       BYTE 0
+MEN2   TEXT 'FIRST NAME'
+       BYTE 0
+MEN3   TEXT 'PROCEED:'
+       BYTE 0
+MEN4   TEXT 'to start at first record'
+       BYTE 0
+ER150  TEXT '          BAD NAME          '
+       BYTE 0
+ER151  TEXT '  DISKETTE WRITE PROTECTED  '
+       BYTE 0
+ER152  TEXT '       BAD ATTRIBUTE        '
+       BYTE 0
+ER153  TEXT '     ILLEGAL OPERATION      '
+       BYTE 0
+ER154  TEXT '       DISKETTE FULL        '
+       BYTE 0
+ER160  TEXT '        DEVICE ERROR        '
+       BYTE 0
+ER170  TEXT '         FILE ERROR         '
+       BYTE 0
+ARY0   TEXT '** ARRAY  EMPTY **'
+       BYTE 0
+ARY1   TEXT 'SELECT ITEM NUMBER 2 '
+       BYTE 0
+ARY2   TEXT 'FROM MAIN MENU TO LOAD DATA '
+       BYTE 0
+TIT3   TEXT '      PRESS ANY KEY'
+       BYTE 0
+FILNM1 TEXT 'INPUT FILENAME: DRIVE #(1-Z)'
+       BYTE 0
+SCHSCS TEXT 'SEARCH ROUTINE'             9
+       BYTE 0
+SCHSCT TEXT 'ENTER STRING(1-10 CHARS)'   355
+       BYTE 0
+MSG1   TEXT '/PROCD'   752
+       BYTE 0
+CDSCR1 TEXT ' ** RECALLIT CODE SCREEN ** '   2
+       BYTE 0
+CDSCR2 TEXT 'INPUT CODES AND MEANINGS'       99
+       BYTE 0
+CDSCR3 TEXT 'CODE=MEANING'                 288
+       BYTE 0
+CDSCR4 TEXT 'eg   M=MALE   MAX. 13 CHARS.'   290
+       BYTE 0
+ED1    TEXT ' ** RECALLIT EDIT SCREEN ** '      * 2,28
+       BYTE 0
+SELCD1 TEXT '** SELECT CODE SCREEN **'    4
+       BYTE 0
+SELCD2 TEXT 'VALID CODES ARE:'            130
+       BYTE 0
+SELCD3 TEXT 'PRESS ENTER FOR INACTIVES '  515
+       BYTE 0
+SELCD4 TEXT 'CHOOSE (1-4) :'              610
+       BYTE 0
+CHGPRU TEXT 'CHANGE PRINT MODE? Y/N    '  354
+       BYTE 0
+SMSG1  TEXT 'SORTING BY :'
+       BYTE 0
+SMSG2  TEXT 'PLEASE WAIT.......'
+       BYTE 0
+SORTIM TEXT 'Operation time app.:--- sec.'
+       BYTE 0
+PRTTY1 TEXT '  1....'              386
+PRTTYQ TEXT 'PICA  10 Chars/inch'
+       BYTE 0
+PRTTY2 TEXT '  2....'              450
+PRTTYR TEXT 'ELITE 12 Chars/inch'
+       BYTE 0
+PRTTY3 TEXT '  3....'              514
+PRTTYS TEXT 'COMPRESSED:2-Column'
+       BYTE 0
+INCODF TEXT '*            '
+       BYTE 0
+INCODG TEXT '*            '
+       BYTE 0
+INCODH TEXT '*            '
+       BYTE 0
+INCODI TEXT '*            '
+       BYTE 0
+INCODJ TEXT '*            '
+       BYTE 0
+INCODK TEXT '*            '
+       BYTE 0
+INCODL TEXT '*            '
+       BYTE 0
+INCODM TEXT '*            '
+       BYTE 0
+INCODN TEXT '*            '
+       BYTE 0
+INCODO TEXT '*            '
+       BYTE 0
+INCODP TEXT '*            '
+       BYTE 0
+INCODQ TEXT '*            '
+       BYTE 0
+INCODR TEXT '*            '
+       BYTE 0
+INCODS TEXT '*            '
+       BYTE 0
+MEMFUM TEXT 'HORIZON HAVE CPU MEMORY FOR '
+       BYTE 0
+AMTREC TEXT ' (0000)'
+       BYTE 0
+SOF    TEXT '       start of file        '
+       BYTE 0
+EOF    TEXT '        end of file         '
+       BYTE 0
+CRUADS TEXT '   DSR ERROR/MEMORY FULL    '
+       BYTE 0
+DRVRED TEXT 'READING DATA'
+       BYTE 0
+DRVMRG TEXT 'MERGING DATA'
+       BYTE 0
+RDATED TEXT '     MERGE DATA? (Y/N)      '
+       BYTE 0
+MRGDUN TEXT '      MERGE COMPLETED       '
+       BYTE 0
+       EVEN
+CDBUF  TEXT '                            '
+       BYTE 0
+CDBUF$ TEXT '          '
+       BYTE 0
+       EVEN
+EDBUF  TEXT '                                '
+       BYTE 0
+LABNUN TEXT 'AMOUNT EACH LABEL :'
+       BYTE 0
+PRTX0  TEXT 'INPUT HEADING/TITLE OF LIST'
+       BYTE 0
+PRTX1  TEXT 'HEADING: First Line'
+       BYTE 0
+PRTX2  TEXT 'HEADING: Second Line'
+       BYTE 0
+PRTX3  TEXT 'Title of List'
+       BYTE 0
+HEAD1  TEXT '*                           '
+       BYTE 0
+HEAD2  TEXT '*                           '
+       BYTE 0
+HEAD3  TEXT '*                           '
+       BYTE 0
+PRTACU TEXT 'PRINT INACTIVES? (Y/N)'     22
+       BYTE 0
+PRTCON TEXT 'PRINT COMMENTS?  (Y/N)'     22
+       BYTE 0
+DUPTXT TEXT ' THIS IS A DUPLICATE RECORD '
+       BYTE 0
+DUPTXU TEXT '         EDIT (Y/N)  '
+       BYTE 0
+       EVEN
+PRTTIT TEXT 'NAME                             '
+       TEXT 'ADDRESS                       '
+       TEXT 'CODE TELEPHONE # '
+PRTLIN TEXT '-------------------------------- '
+       TEXT '----------------------------- '
+       TEXT '---- ------------'
+PRTICM TEXT 'NAME                             '
+       TEXT 'ADDRESS                      '
+       TEXT 'CODE TELEPHONE #   '
+       TEXT 'NAME                             '
+       TEXT 'ADDRESS                      '
+       TEXT 'CODE TELEPHONE # '
+PRTICN TEXT '-------------------------------- '
+       TEXT '---------------------------- '
+       TEXT '---- ------------  '
+       TEXT '-------------------------------- '
+       TEXT '---------------------------- '
+       TEXT '---- ------------'
+PRTC10 TEXT 'PRINTER CONFIGURATION/CODES'
+       BYTE 0
+PRTCD1 TEXT '    CONDENSED ON'
+       BYTE 0
+PRTCD2 TEXT '   CONDENSED OFF'
+       BYTE 0
+PRTCD3 TEXT '     EXPANDED ON'
+       BYTE 0
+PRTCD4 TEXT '    EXPANDED OFF'
+       BYTE 0
+PRTCD5 TEXT ' PICA 10 chrs/in'
+       BYTE 0
+PRTCD6 TEXT 'ELITE 12 chrs/in'
+       BYTE 0
+PRTCD8 TEXT 'codes '
+       BYTE 13,21,19,20
+       TEXT ' be in HEX'
+       BYTE 0
+SVEMSH TEXT '  SAVE COMPLETE LIST? (YN)  '  354
+       BYTE 0
+SVE001 TEXT '  starting RECORD :         '  354
+       BYTE 0
+SVE002 TEXT '    ending RECORD :         '  450
+       BYTE 0
+SREC   TEXT '0000 to '                     98
+EREC   TEXT '0000'
+       BYTE 0
+SAVED  TEXT ' saved RECS. :'
+       BYTE 0
+SAVING TEXT 'saving RECS. :'
+       BYTE 0
+CATDSK TEXT 'FCTN 7(AID) for CATALOG'
+       BYTE 0
+HEX    TEXT '0123456789ABCDEF'
+PAGE#  TEXT 'Page# 00'
+COMMA  TEXT ', '
+ENDLST TEXT 'List Contains 0000 of 0000 Names'  32
+PRTTIU TEXT 'CODES AND MEANINGS'        18
+PERIOD TEXT '.'
+YNCHK  TEXT 'YN'
+SREC1  TEXT '   1'
+CAT001 TEXT 'catalog a disk'
+       BYTE 0
+CAT002 TEXT 'INPUT DRIVE# (1-Z)'
+       BYTE 0
+CAT003 TEXT '     Building Directory     '
+       BYTE 0
+       EVEN
+CAT004 TEXT ' Page  1 of  1'
+       BYTE 0
+CAT005 TEXT 'Used=0000 '
+CAT006 TEXT 'Free=0000'
+       BYTE 0
+CAT007 TEXT 'Vol='
+CAT008 TEXT '          '      * 10 Bytes; Diskname
+       BYTE 0
+CAT010 TEXT ' Filename   Size Typ Lengh P'
+       BYTE 0
+CAT011 TEXT 'E=up  X=down  B=back  N=next'
+CAT012 TEXT '          REDO ENTER BACK'
+       BYTE 0
+CAT013 TEXT '                   '
+       BYTE 0
+TYPE1  TEXT 'D/F'        Display Fixed
+       BYTE 0
+TYPE2  TEXT 'D/V'        Display Variable
+       BYTE 0
+TYPE3  TEXT 'I/F'        Internal Fixed
+       BYTE 0
+TYPE4  TEXT 'I/V'        Internal Variable
+       BYTE 0
+TYPE5  TEXT 'PRG'        Program
+       BYTE 0
+TYPE6  TEXT 'DIR'
+       BYTE 0
+AMTSET TEXT '---- Sectors'                   490
+       BYTE 0
+AMTSEU TEXT 'Needed to save entire file'     546
+       BYTE 0
+FNAME  TEXT '           '
+SIZE   TEXT '     '
+TYPDIS TEXT '    '
+LENGTH TEXT '      '
+PROT   TEXT ' '
+       BYTE 0
+STOSCR TEXT '                                             '
+       TEXT '                                             '
+       TEXT '                                             '
+       TEXT '                                             '
+       TEXT '                                             '
+       TEXT '                                             '
+       TEXT '                                             '
+       TEXT '                                     '
+       BYTE 0
+FLDS00 TEXT 'Select which field/s to SRCH'
+       BYTE 0
+FLDS01 TEXT 'A=ALL FIELDS'
+       BYTE 0
+FLDS02 TEXT 'OFF  B=Last  Name'
+       BYTE 0
+FLDS03 TEXT 'OFF  C=First Name'
+       BYTE 0
+FLDS04 TEXT 'OFF  D=Title'
+       BYTE 0
+FLDS05 TEXT 'OFF  E=Address'
+       BYTE 0
+FLDS06 TEXT 'OFF  F=City'
+       BYTE 0
+FLDS07 TEXT 'OFF  G=Province/State'
+       BYTE 0
+FLDS08 TEXT 'OFF  H=Postal/Zip Code'
+       BYTE 0
+FLDS09 TEXT 'OFF  I=Code'
+       BYTE 0
+FLDS10 TEXT 'OFF  J=Comments'
+       BYTE 0
+FLDS11 TEXT 'OFF  K=Telephone #'
+       BYTE 0
+FLDS12 TEXT 'ON/OFF, PROCD,BACK'
+       BYTE 0
+FLDS13 TEXT ':          :'
+       BYTE 0
+SORTXT TEXT ' ** RECALLIT SORT SCREEN ** '
+       BYTE 0
+SORTXU TEXT '    Field last SORTED by    '
+       BYTE 0
+SORTXV TEXT ':                 :'
+       BYTE 0
+MSGOF  TEXT 'OFF'
+MSGON  BYTE 15,14,32
+       EVEN
