@@ -17,7 +17,7 @@ Using the RAMBO PROGRAM SPACE from 8K to 512K it can store up to 4000 records, e
 
 Like other Phoenix 2001 software it has easy-to-learn menus, all contained in a 100% Assembly program. An amazing thing about RECALLIT 2001 combined with RAMBO is the ZERO-TIME sorter, you will never have to wait.
 
-TI99 AtariAge Release Page:
+TI99 AtariAge Release Page: https://forums.atariage.com/topic/364958-release-phoenix-2001-recallit-v200-by-opa/
 
 * PHOENIX 2001 RECALLIT v2.00 by Cecil Chin of O.P.A.
 *
